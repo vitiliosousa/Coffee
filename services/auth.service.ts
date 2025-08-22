@@ -319,40 +319,4 @@ export interface ProductsResponse {
   message: string;
   data: Product[];
 }
-
-class AdminService {
-  private async makeAuthenticatedRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const token = await AsyncStorage.getItem('@auth_token'); // ou outro método de pegar token
-    if (!token) throw new Error('Token não encontrado');
-
-    const headers = {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-      ...(options.headers || {}),
-    };
-
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...options,
-      headers,
-    });
-
-    const data = await response.json();
-    if (!response.ok) throw data;
-    return data;
-  }
-
-  // ✅ Listar Categorias
-  async listCategories(): Promise<CategoriesResponse> {
-    return this.makeAuthenticatedRequest<CategoriesResponse>('/admin/categories', { method: 'GET' });
-  }
-
-  // ✅ Listar Produtos
-  async listProducts(): Promise<ProductsResponse> {
-    return this.makeAuthenticatedRequest<ProductsResponse>('/admin/products', { method: 'GET' });
-  }
-}
-
-export const adminService = new AdminService();
-
-
 export const authService = new AuthService();

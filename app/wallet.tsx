@@ -115,7 +115,7 @@ export default function Wallet() {
               </View>
               <View className="flex-1">
                 <Text className="font-bold text-lg">{tx.description || tx.type}</Text>
-                <Text className="text-gray-500">{tx.type} . {new Date(tx.created_at).toLocaleDateString()}</Text>
+                <Text className="text-gray-500">M-Pesa . {new Date(tx.created_at).toLocaleDateString()}</Text>
               </View>
               <View className="items-end">
                 <Text className={`${tx.amount.startsWith("+") ? "text-green-500" : "text-red-500"} font-bold text-xl`}>

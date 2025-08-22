@@ -10,7 +10,7 @@ import {
 import { useRouter, Link } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import DotsWhite from "@/components/DotsWhite";
-import { adminService, Category, Product } from "@/services/auth.service"; // ajuste o path se necessário
+import { adminService, Category, Product } from "@/services/admin.service";
 
 export default function Menu() {
   const router = useRouter();
@@ -25,7 +25,7 @@ export default function Menu() {
     const fetchCategories = async () => {
       try {
         const response = await adminService.listCategories();
-        setCategories(Array.isArray(response.data) ? response.data : []);
+        setCategories(Array.isArray(response.data.categories) ? response.data.categories : []);
       } catch (error) {
         console.error("Erro ao buscar categorias:", error);
         setCategories([]);
@@ -36,13 +36,13 @@ export default function Menu() {
     fetchCategories();
   }, []);
 
-  // Buscar produtos (opcional: por categoria)
+  // Buscar produtos (por categoria se selecionada)
   useEffect(() => {
     const fetchProducts = async () => {
+      setLoadingProducts(true);
       try {
-        let response;
-        response = await adminService.listProducts();
-        setProducts(Array.isArray(response.data) ? response.data : []);
+        const response = await adminService.listProducts(selectedCategory || undefined);
+        setProducts(Array.isArray(response.data.products) ? response.data.products : []);
       } catch (error) {
         console.error("Erro ao buscar produtos:", error);
         setProducts([]);
@@ -131,7 +131,7 @@ export default function Menu() {
                 <Text className="text-lg font-bold text-background">{item.name}</Text>
                 <Text className="text-gray-500 text-sm">{item.description}</Text>
                 <Text className="text-background text-xl font-semibold mt-1">
-                  ${item.price.toFixed(2)}
+                  ${typeof item.price === "number" ? item.price.toFixed(2) : item.price}
                 </Text>
               </View>
             </View>
