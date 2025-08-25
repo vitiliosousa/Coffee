@@ -31,17 +31,6 @@ export default function Home() {
     fetchAccountInfo();
   }, []);
 
-  const handleVerifyNow = async () => {
-    if (!accountInfo?.email) return;
-    try {
-      await authService.requestOTP();
-      setShowVerificationModal(false);
-      router.push("/verify-otp"); 
-    } catch (error: any) {
-      Alert.alert("Erro", error.message || "Falha ao solicitar OTP");
-    }
-  };
-
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center bg-fundo">
@@ -52,7 +41,6 @@ export default function Home() {
 
   return (
     <View className="flex-1 bg-fundo">
-      {/* Modal de verificação */}
       <Modal visible={showVerificationModal} transparent animationType="fade">
         <View className="flex-1 justify-center items-center bg-black/50 p-6">
           <View className="bg-white p-6 rounded-xl w-full">
@@ -62,14 +50,14 @@ export default function Home() {
             </Text>
             <View className="flex-row justify-between">
               <TouchableOpacity
-                className="bg-gray-300 px-4 py-2 rounded-xl flex-1 mr-2 items-center"
+                className="bg-gray-300 px-4 py-2 rounded-xl mr-2 text-center flex-1 items-center justify-center"
                 onPress={() => setShowVerificationModal(false)}
               >
                 <Text>Continuar sem verificação</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                className="bg-background px-4 py-2 rounded-xl flex-1 ml-2 items-center"
-                onPress={handleVerifyNow}
+                className="bg-background px-4 py-2 rounded-xl flex-1 ml-2 items-center justify-center"
+                onPress={() => router.push("/verify-otp")}
               >
                 <Text className="text-white font-bold">Verificar agora</Text>
               </TouchableOpacity>
