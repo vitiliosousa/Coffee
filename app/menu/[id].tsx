@@ -8,33 +8,45 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { ChevronLeft, Minus, Plus, Square } from "lucide-react-native";
+import { ChevronLeft, Minus, Plus } from "lucide-react-native";
 import DotsWhite from "@/components/DotsWhite";
-import { adminService, Product } from "@/services/admin.service";
+import { adminService, Product, Variant } from "@/services/admin.service";
 
 export default function MenuDetails() {
   const router = useRouter();
-  const { id } = useLocalSearchParams(); // pega o id do produto da rota
+  const { id } = useLocalSearchParams(); // id do produto
   const [product, setProduct] = useState<Product | null>(null);
+  const [variants, setVariants] = useState<Variant[]>([]);
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
+  const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!id) return;
 
-    const fetchProduct = async () => {
+    const fetchProductAndVariants = async () => {
       setLoading(true);
       try {
-        const response = await adminService.getProductById(id as string);
-        setProduct(response.data.product);
+        const productResponse = await adminService.getProductById(id as string);
+        setProduct(productResponse.data.product);
+
+        const variantsResponse = await adminService.listVariants(id as string);
+        setVariants(Array.isArray(variantsResponse.data.variants) ? variantsResponse.data.variants : []);
       } catch (error) {
-        console.error("Erro ao buscar produto:", error);
+        console.error("Erro ao buscar produto ou variantes:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProduct();
+    fetchProductAndVariants();
   }, [id]);
+
+  const getFinalPrice = () => {
+    if (!product) return 0;
+    const variantPrice = variants.find(v => v.id === selectedVariantId)?.price_adjustment || 0;
+    return ((product.price as number) + variantPrice) * quantity;
+  };
 
   if (loading) {
     return (
@@ -67,7 +79,6 @@ export default function MenuDetails() {
         </View>
       </View>
 
-      {/* Conteúdo do produto */}
       <ScrollView className="flex-1 p-6 bg-white">
         <View className="flex-1 items-center justify-center mt-10">
           <Image
@@ -80,12 +91,51 @@ export default function MenuDetails() {
           <Text className="text-4xl font-bold">{product.name}</Text>
           <Text className="text-xl text-gray-500">{product.description}</Text>
           <Text className="text-4xl font-bold text-background">
-            ${typeof product.price === "number" ? product.price.toFixed(2) : product.price}
+            ${getFinalPrice().toFixed(2)}
           </Text>
         </View>
 
-        {/* Aqui você pode renderizar opções adicionais dinamicamente se existir */}
-        {/* Por exemplo size options */}
+        {/* Variantes do produto */}
+        {variants.length > 0 && (
+          <>
+            <Text className="text-2xl font-bold mt-10 mb-4">Choice of Variant</Text>
+            <View className="flex-1 gap-3">
+              {variants.map((variant) => (
+                <TouchableOpacity
+                  key={variant.id}
+                  onPress={() => setSelectedVariantId(variant.id)}
+                  className={`border flex-row justify-between items-center p-4 rounded-xl mt-2 ${
+                    selectedVariantId === variant.id ? "border-background bg-background" : "border-gray-300"
+                  }`}
+                >
+                  <Text className={`text-lg ${selectedVariantId === variant.id ? "text-white" : "text-gray-700"}`}>
+                    {variant.name}
+                  </Text>
+                  <Text className={`text-lg font-bold ${selectedVariantId === variant.id ? "text-white" : "text-gray-700"}`}>
+                    ${variant.price_adjustment.toFixed(2)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>
+        )}
+
+        {/* Seleção de quantidade */}
+        <View className="flex-row justify-center items-center mt-10 mb-10 gap-4">
+          <TouchableOpacity
+            onPress={() => setQuantity(prev => Math.max(1, prev - 1))}
+            className="border border-background rounded-full p-5"
+          >
+            <Minus size={20} color="#503B36" />
+          </TouchableOpacity>
+          <Text className="text-3xl">{quantity}</Text>
+          <TouchableOpacity
+            onPress={() => setQuantity(prev => prev + 1)}
+            className="border border-background rounded-full p-5"
+          >
+            <Plus size={20} color="#503B36" />
+          </TouchableOpacity>
+        </View>
       </ScrollView>
 
       <View className="border-t border-gray-200 p-6 bg-white">
