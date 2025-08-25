@@ -114,12 +114,14 @@ export default function Home() {
                 Full Menu
               </Text>
             </TouchableOpacity>
-            <View className="bg-white flex-1 rounded-2xl p-5 items-center justify-center gap-4">
+            <TouchableOpacity
+             onPress={() => router.push("/detail-product")}
+             className="bg-white flex-1 rounded-2xl p-5 items-center justify-center gap-4">
               <View className="p-5 bg-fundoescuro rounded-xl items-center justify-center">
                 <Star />
               </View>
               <Text className="text-background text-lg font-bold">Rewards</Text>
-            </View>
+            </TouchableOpacity>
           </View>
 
           {/* Special */}
