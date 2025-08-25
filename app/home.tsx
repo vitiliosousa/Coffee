@@ -115,7 +115,7 @@ export default function Home() {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-             onPress={() => router.push("/detail-product")}
+             onPress={() => router.push("/menu/[id]")}
              className="bg-white flex-1 rounded-2xl p-5 items-center justify-center gap-4">
               <View className="p-5 bg-fundoescuro rounded-xl items-center justify-center">
                 <Star />

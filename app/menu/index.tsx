@@ -49,9 +49,7 @@ export default function Menu() {
           selectedCategory || undefined
         );
         setProducts(
-          Array.isArray(response.data.products)
-            ? response.data.products
-            : []
+          Array.isArray(response.data.products) ? response.data.products : []
         );
       } catch (error) {
         console.error("Erro ao buscar produtos:", error);
@@ -148,33 +146,41 @@ export default function Menu() {
           </Text>
         ) : (
           products.map((item) => (
-            <View
+            <TouchableOpacity
               key={item.id}
-              className="flex-row items-center mb-6 bg-white p-4 border border-gray-200 rounded-xl gap-4 shadow-sm"
+              onPress={() =>
+                router.push({
+                  pathname: "/menu/[id]",
+                  params: { id: item.id },
+                })
+              }
             >
-              <Image
-                source={{
-                  uri: item.image_url || "https://via.placeholder.com/100",
-                }}
-                className="w-20 h-20 rounded-xl mr-4"
-              />
-              <View className="flex-1 gap-2">
-                <Text className="text-lg font-bold text-background">
-                  {item.name}
-                </Text>
-                <Text className="text-gray-500 text-sm" numberOfLines={2}>
-                  {item.description || "No description available"}
-                </Text>
-                <Text className="text-xs text-gray-400 italic">
-                  {item.category?.name || "Uncategorized"}
-                </Text>
-                <Text className="text-background text-xl font-semibold mt-1">
-                  ${typeof item.price === "number"
-                    ? item.price.toFixed(2)
-                    : item.price}
-                </Text>
+              <View className="flex-row items-center mb-6 bg-white p-4 border border-gray-200 rounded-xl gap-4 shadow-sm">
+                <Image
+                  source={{
+                    uri: item.image_url || "https://via.placeholder.com/100",
+                  }}
+                  className="w-20 h-20 rounded-xl mr-4"
+                />
+                <View className="flex-1 gap-2">
+                  <Text className="text-lg font-bold text-background">
+                    {item.name}
+                  </Text>
+                  <Text className="text-gray-500 text-sm" numberOfLines={2}>
+                    {item.description || "No description available"}
+                  </Text>
+                  <Text className="text-xs text-gray-400 italic">
+                    {item.category?.name || "Uncategorized"}
+                  </Text>
+                  <Text className="text-background text-xl font-semibold mt-1">
+                    $
+                    {typeof item.price === "number"
+                      ? item.price.toFixed(2)
+                      : item.price}
+                  </Text>
+                </View>
               </View>
-            </View>
+            </TouchableOpacity>
           ))
         )}
       </ScrollView>
