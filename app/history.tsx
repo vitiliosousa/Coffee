@@ -7,10 +7,10 @@ import {
   ScrollView,
   ActivityIndicator,
 } from "react-native";
-import {  Link } from "expo-router";
+import { Link } from "expo-router";
 import { ChevronLeft, Banknote, Smartphone } from "lucide-react-native";
 import DotsWhite from "@/components/DotsWhite";
-import { authService, Transaction } from "@/services/auth.service"; // ajuste o path se necessário
+import { authService, Transaction } from "@/services/auth.service";
 
 export default function History() {
   const [selectedFilter, setSelectedFilter] = useState("All");
@@ -37,8 +37,9 @@ export default function History() {
   const filteredTransactions = transactions.filter((tx) => {
     const matchFilter =
       selectedFilter === "All" || tx.status === selectedFilter.toLowerCase();
-    const matchSearch = tx.type.toLowerCase().includes(search.toLowerCase()) || 
-                        tx.description?.toLowerCase().includes(search.toLowerCase());
+    const matchSearch =
+      tx.type.toLowerCase().includes(search.toLowerCase()) ||
+      tx.description?.toLowerCase().includes(search.toLowerCase());
     return matchFilter && matchSearch;
   });
 
@@ -100,7 +101,8 @@ export default function History() {
           </Text>
         ) : (
           filteredTransactions.map((tx) => {
-            const Icon = tx.type === "mpesa" ? Banknote : Smartphone;
+            const Icon = tx.type === "topup" ? Smartphone : Banknote;
+            const isTopup = tx.type === "topup";
 
             return (
               <View
@@ -116,16 +118,18 @@ export default function History() {
                       <Text className="font-bold text-lg">
                         {tx.description || tx.type}
                       </Text>
-                      <Text className="text-gray-500">M-Pesa</Text>
+                      <Text className="text-gray-500">
+                        {isTopup ? "Top-up" : "Payment"}
+                      </Text>
                     </View>
                   </View>
                   <View>
                     <Text
                       className={`font-bold text-2xl ${
-                        tx.amount.startsWith("+") ? "text-green-600" : "text-red-600"
+                        isTopup ? "text-green-600" : "text-red-600"
                       }`}
                     >
-                      {tx.amount.startsWith("+") ? `+${tx.amount}` : `-${tx.amount}`}
+                      {isTopup ? `+${tx.amount}` : `-${tx.amount}`}
                     </Text>
                     <Text className="capitalize">{tx.status}</Text>
                   </View>

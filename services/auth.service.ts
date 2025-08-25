@@ -1,8 +1,8 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Platform } from "react-native";
 
-const API_BASE_URL = 'http://162.245.188.169:8045/api/v1';
-const isWeb = Platform.OS === 'web';
+const API_BASE_URL = "http://162.245.188.169:8045/api/v1";
+const isWeb = Platform.OS === "web";
 
 export interface RegisterData {
   name: string;
@@ -121,46 +121,65 @@ export interface TransactionFilter {
 }
 
 class AuthService {
-  private async makeRequest<T>(endpoint: string, options: RequestInit): Promise<T> {
+  private async makeRequest<T>(
+    endpoint: string,
+    options: RequestInit
+  ): Promise<T> {
     try {
-      const headers: Record<string, string> = { 'Content-Type': 'application/json', ...options.headers };
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        ...options.headers,
+      };
       if (isWeb) {
-        headers['Accept'] = 'application/json';
-        headers['X-Requested-With'] = 'XMLHttpRequest';
+        headers["Accept"] = "application/json";
+        headers["X-Requested-With"] = "XMLHttpRequest";
       }
 
       const requestOptions: RequestInit = {
         ...options,
         headers,
-        mode: isWeb ? 'cors' : undefined,
-        credentials: isWeb ? 'omit' : undefined,
+        mode: isWeb ? "cors" : undefined,
+        credentials: isWeb ? "omit" : undefined,
       };
 
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, requestOptions);
+      const response = await fetch(
+        `${API_BASE_URL}${endpoint}`,
+        requestOptions
+      );
       const data = await response.json();
 
       if (!response.ok) {
-        throw { status: 'error', message: data.message || 'Erro na requisição', errors: data.errors } as ApiError;
+        throw {
+          status: "error",
+          message: data.message || "Erro na requisição",
+          errors: data.errors,
+        } as ApiError;
       }
       return data;
     } catch (error) {
-      console.error('Erro na requisição:', error);
+      console.error("Erro na requisição:", error);
       if (error instanceof TypeError) {
         throw {
-          status: 'error',
+          status: "error",
           message: isWeb
-            ? 'Erro de CORS ou conexão. Tente no dispositivo móvel ou configure um proxy.'
-            : 'Erro de conexão. Verifique sua internet.',
+            ? "Erro de CORS ou conexão. Tente no dispositivo móvel ou configure um proxy."
+            : "Erro de conexão. Verifique sua internet.",
         } as ApiError;
       }
       throw error;
     }
   }
 
-  private async makeAuthenticatedRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  private async makeAuthenticatedRequest<T>(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<T> {
     const token = await this.getToken();
     if (!token) {
-      throw { status: 'error', message: 'Token de autenticação não encontrado. Faça login novamente.' } as ApiError;
+      throw {
+        status: "error",
+        message: "Token de autenticação não encontrado. Faça login novamente.",
+      } as ApiError;
     }
 
     const authenticatedOptions: RequestInit = {
@@ -180,8 +199,8 @@ class AuthService {
       password: userData.password,
     };
 
-    const response = await this.makeRequest<AuthResponse>('/auth/register', {
-      method: 'POST',
+    const response = await this.makeRequest<AuthResponse>("/auth/register", {
+      method: "POST",
       body: JSON.stringify(registerPayload),
     });
 
@@ -193,8 +212,8 @@ class AuthService {
   }
 
   async login(loginData: LoginData): Promise<AuthResponse> {
-    const response = await this.makeRequest<AuthResponse>('/auth/login', {
-      method: 'POST',
+    const response = await this.makeRequest<AuthResponse>("/auth/login", {
+      method: "POST",
       body: JSON.stringify(loginData),
     });
 
@@ -206,14 +225,17 @@ class AuthService {
   }
 
   async getAccountInfo(): Promise<AccountInfoResponse> {
-    const response = await this.makeAuthenticatedRequest<AccountInfoResponse>('/users/account-info', { method: 'GET' });
+    const response = await this.makeAuthenticatedRequest<AccountInfoResponse>(
+      "/users/account-info",
+      { method: "GET" }
+    );
     if (response.data?.account) {
       const updatedUser: User = {
         id: response.data.account.id,
         name: response.data.account.name,
         phone: response.data.account.phone,
         email: response.data.account.email,
-        birthday: '',
+        birthday: "",
         role: response.data.account.role,
         wallet_balance: response.data.account.wallet_balance,
         loyalty_points: response.data.account.loyalty_points,
@@ -226,46 +248,88 @@ class AuthService {
     return response;
   }
 
-  async walletTopUp(data: { user_id: string; amount: number; phone: string; description?: string; method?: 'mpesa' | 'card' }): Promise<WalletTopUpResponse> {
-    const body = { user_id: data.user_id, type: 'topup', method: data.method || 'mpesa', amount: data.amount, phone: data.phone, description: data.description };
-    return this.makeAuthenticatedRequest<WalletTopUpResponse>('/users/wallet/top-up', { method: 'POST', body: JSON.stringify(body) });
+  async walletTopUp(data: {
+    user_id: string;
+    amount: number;
+    phone: string;
+    description?: string;
+    method?: "mpesa" | "card";
+  }): Promise<WalletTopUpResponse> {
+    const body = {
+      user_id: data.user_id,
+      type: "topup",
+      method: data.method || "mpesa",
+      amount: data.amount,
+      phone: data.phone,
+      description: data.description,
+    };
+    return this.makeAuthenticatedRequest<WalletTopUpResponse>(
+      "/users/wallet/top-up",
+      { method: "POST", body: JSON.stringify(body) }
+    );
   }
 
   // Listar todas as transações
   async getWalletTransactions(): Promise<WalletTransactionsResponse> {
-    return this.makeAuthenticatedRequest<WalletTransactionsResponse>('/users/wallet/transactions', { method: 'GET' });
+    return this.makeAuthenticatedRequest<WalletTransactionsResponse>(
+      "/users/wallet/transactions",
+      { method: "GET" }
+    );
   }
 
   // ✅ Novo: filtrar transações
-  async filterWalletTransactions(filters: TransactionFilter): Promise<WalletTransactionsResponse> {
-    return this.makeAuthenticatedRequest<WalletTransactionsResponse>('/users/wallet/transactions/filters', {
-      method: 'POST',
-      body: JSON.stringify(filters),
-    });
+  async filterWalletTransactions(
+    filters: TransactionFilter
+  ): Promise<WalletTransactionsResponse> {
+    return this.makeAuthenticatedRequest<WalletTransactionsResponse>(
+      "/users/wallet/transactions/filters",
+      {
+        method: "POST",
+        body: JSON.stringify(filters),
+      }
+    );
   }
 
   async requestOTP(): Promise<{ status: string; message: string }> {
-    return this.makeAuthenticatedRequest<{ status: string; message: string }>('/users/request-otp', { method: 'POST' });
+    return this.makeAuthenticatedRequest<{ status: string; message: string }>(
+      "/users/request-otp",
+      { method: "POST" }
+    );
+  }
+
+  async verifyOTP(otp: string): Promise<{ status: string; message: string }> {
+    const user = await this.getUser();
+    if (!user) throw { status: "error", message: "Usuário não encontrado." };
+
+    const body = { email: user.email, otp };
+
+    return this.makeAuthenticatedRequest<{ status: string; message: string }>(
+      "/users/verify-otp",
+      {
+        method: "POST",
+        body: JSON.stringify(body),
+      }
+    );
   }
 
   async logout(): Promise<void> {
-    await AsyncStorage.multiRemove(['@auth_token', '@user_data']);
+    await AsyncStorage.multiRemove(["@auth_token", "@user_data"]);
   }
 
   async saveToken(token: string): Promise<void> {
-    await AsyncStorage.setItem('@auth_token', token);
+    await AsyncStorage.setItem("@auth_token", token);
   }
 
   async getToken(): Promise<string | null> {
-    return await AsyncStorage.getItem('@auth_token');
+    return await AsyncStorage.getItem("@auth_token");
   }
 
   async saveUser(user: User): Promise<void> {
-    await AsyncStorage.setItem('@user_data', JSON.stringify(user));
+    await AsyncStorage.setItem("@user_data", JSON.stringify(user));
   }
 
   async getUser(): Promise<User | null> {
-    const userData = await AsyncStorage.getItem('@user_data');
+    const userData = await AsyncStorage.getItem("@user_data");
     return userData ? JSON.parse(userData) : null;
   }
 
@@ -276,7 +340,10 @@ class AuthService {
 
   async testConnection(): Promise<boolean> {
     try {
-      const response = await fetch(`${API_BASE_URL}/health`, { method: 'GET', mode: isWeb ? 'cors' : undefined });
+      const response = await fetch(`${API_BASE_URL}/health`, {
+        method: "GET",
+        mode: isWeb ? "cors" : undefined,
+      });
       return response.ok;
     } catch {
       return false;

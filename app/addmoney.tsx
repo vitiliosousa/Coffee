@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,18 +10,30 @@ import {
 import { useRouter, Link } from "expo-router";
 import { ChevronLeft, Banknote, Smartphone } from "lucide-react-native";
 import DotsWhite from "@/components/DotsWhite";
-import { authService } from "@/services/auth.service"; // importa o service
+import { authService } from "@/services/auth.service";
 
 export default function AddMoney() {
   const router = useRouter();
   const [amount, setAmount] = useState("");
+  const [phone, setPhone] = useState(""); // Novo campo de telefone
   const [paymentMethod, setPaymentMethod] = useState("");
   const [loading, setLoading] = useState(false);
 
   const quickAmounts = [200, 500, 1000, 2000];
 
+  // Preenche o telefone do usuário caso esteja salvo
+  useEffect(() => {
+    (async () => {
+      const user = await authService.getUser();
+      if (user?.phone) setPhone(user.phone);
+    })();
+  }, []);
+
   const handleConfirmDeposit = async () => {
-    if (!amount || !paymentMethod) return;
+    if (!amount || !paymentMethod || !phone) {
+      Alert.alert("Aviso", "Preencha todos os campos antes de continuar.");
+      return;
+    }
 
     if (paymentMethod !== "mpesa") {
       Alert.alert("Aviso", "Por enquanto só o Mpesa está disponível.");
@@ -31,24 +43,22 @@ export default function AddMoney() {
     try {
       setLoading(true);
 
-      // buscar o usuário salvo no AsyncStorage
       const user = await authService.getUser();
       if (!user) {
         Alert.alert("Erro", "Usuário não encontrado. Faça login novamente.");
         return;
       }
 
-      // chamar o serviço de recarga
       const response = await authService.walletTopUp({
         user_id: user.id,
         amount: parseFloat(amount),
-        phone: user.phone,
+        phone,
         description: "Recarga via app",
         method: "mpesa",
       });
 
       Alert.alert("Sucesso", response.message || "Recarga solicitada!");
-      router.push("/wallet"); // redireciona para a carteira
+      router.push("/wallet");
     } catch (error: any) {
       console.error(error);
       Alert.alert("Erro", error.message || "Falha ao processar a recarga.");
@@ -99,6 +109,20 @@ export default function AddMoney() {
           ))}
         </View>
 
+        {/* Campo de telefone */}
+        <View className="mb-6 gap-4">
+          <Text className="text-2xl font-semibold mb-2 text-background">
+            Phone Number
+          </Text>
+          <TextInput
+            value={phone}
+            onChangeText={setPhone}
+            placeholder="2547XXXXXXXX"
+            keyboardType="phone-pad"
+            className="w-full border bg-white border-gray-300 rounded-lg px-4 py-4 text-lg"
+          />
+        </View>
+
         <Text className="text-2xl font-semibold mb-3 text-background">
           Choose Payment Method
         </Text>
@@ -140,10 +164,10 @@ export default function AddMoney() {
         </View>
 
         <TouchableOpacity
-          disabled={!amount || !paymentMethod || loading}
+          disabled={!amount || !paymentMethod || !phone || loading}
           onPress={handleConfirmDeposit}
-          className={`mt-10 rounded-full py-4 items-center ${
-            !amount || !paymentMethod || loading
+          className={`mt-10 mb-10 rounded-full py-4 items-center ${
+            !amount || !paymentMethod || !phone || loading
               ? "bg-gray-300"
               : "bg-background"
           }`}

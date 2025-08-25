@@ -106,20 +106,26 @@ export default function Wallet() {
         </View>
 
         {recentTransactions.map((tx) => {
-          const Icon = tx.type === "topup" ? Plus : Banknote;
+          const isTopup = tx.type === "topup";
+          const Icon = isTopup ? Banknote : Smartphone;
+          const bgColor = isTopup ? "bg-green-200" : "bg-red-200";
+          const iconColor = isTopup ? "#22c55e" : "#ef4444";
 
           return (
-            <View key={tx.id} className="flex-row items-center justify-between gap-4 bg-white p-5 rounded-2xl mb-4 border border-gray-100">
-              <View className="p-5 bg-green-200 rounded-full">
-                <Icon size={24} color="#22c55e" />
+            <View
+              key={tx.id}
+              className="flex-row items-center justify-between gap-4 bg-white p-5 rounded-2xl mb-4 border border-gray-100"
+            >
+              <View className={`p-5 rounded-full ${bgColor}`}>
+                <Icon size={24} color={iconColor} />
               </View>
               <View className="flex-1">
                 <Text className="font-bold text-lg">{tx.description || tx.type}</Text>
                 <Text className="text-gray-500">M-Pesa . {new Date(tx.created_at).toLocaleDateString()}</Text>
               </View>
               <View className="items-end">
-                <Text className={`${tx.amount.startsWith("+") ? "text-green-500" : "text-red-500"} font-bold text-xl`}>
-                  {tx.amount.startsWith("+") ? `+${tx.amount}` : `-${tx.amount}`}
+                <Text className={`font-bold text-xl ${isTopup ? "text-green-500" : "text-red-500"}`}>
+                  {isTopup ? `+${tx.amount}` : `-${tx.amount}`}
                 </Text>
                 <Text className="text-gray-500 capitalize">{tx.status}</Text>
               </View>
