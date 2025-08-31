@@ -208,22 +208,26 @@ export default function Home() {
         <View className="p-4 bg-fundoescuro rounded-full">
           <Coffee size={20} color="#503B36" />
         </View>
-        <View className="p-4">
+        <TouchableOpacity
+        onPress={() => router.push("/reservation")}
+         className="p-4">
           <Calendar size={20} color="#503B36" />
-        </View>
+        </TouchableOpacity>
         <TouchableOpacity
           onPress={() => router.push("/menu")}
           className="bg-background rounded-2xl px-8 py-4 flex-row items-center justify-center gap-2"
         >
-          <Menu size={20} color="#FFFFFF" />
           <Text className="text-white text-xl font-bold text-center">Order</Text>
+          <Menu size={20} color="#FFFFFF" />
         </TouchableOpacity>
         <View className="p-4">
           <Star size={20} color="#503B36" />
         </View>
-        <View className="p-4">
+        <TouchableOpacity
+          onPress={() => router.push("/profile")}
+        className="p-4">
           <User size={20} color="#503B36" />
-        </View>
+        </TouchableOpacity>
       </View>
     </View>
   );

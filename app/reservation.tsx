@@ -3,13 +3,30 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
+  TextInput,
 } from "react-native";
+import { useState } from "react";
 import { useRouter, Link } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 import DotsWhite from "@/components/DotsWhite";
 
 export default function Reservation() {
   const router = useRouter();
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedTime, setSelectedTime] = useState("");
+  const [selectedPeople, setSelectedPeople] = useState(1);
+  const [specialRequest, setSpecialRequest] = useState("");
+
+  // Gerando horários de 30 em 30 minutos entre 09:00 e 20:30
+  const times = [];
+  for (let h = 9; h <= 20; h++) {
+    for (let m of [0, 30]) {
+      if (h === 21 && m === 0) break; // até 20:00
+      const hour = String(h).padStart(2, "0");
+      const minute = String(m).padStart(2, "0");
+      times.push(`${hour}:${minute}`);
+    }
+  }
 
   return (
     <View className="flex-1 bg-white">
@@ -30,49 +47,95 @@ export default function Reservation() {
 
       {/* CONTEÚDO SCROLLÁVEL */}
       <ScrollView className="flex-1 px-6 py-6">
-        <Text className="text-xl text-gray-700 leading-6">
-          Welcome to Coffee Buzz! By accessing or using our application, you
-          agree to comply with and be bound by the following Terms and
-          Conditions. Please read them carefully.{"\n\n"}
-          <Text className="font-bold">1. Acceptance of Terms{"\n"}</Text>
-          By creating an account or placing an order through Coffee Buzz, you
-          acknowledge that you have read, understood, and agree to these Terms.
-          If you do not agree, please do not use the app.{"\n\n"}
-          <Text className="font-bold">2. Eligibility{"\n"}</Text>
-          You must be at least 16 years old to use Coffee Buzz. By using the
-          app, you represent and warrant that you meet this requirement.{"\n\n"}
-          <Text className="font-bold">3. Orders & Payment{"\n"}</Text>
-          All prices are listed in Meticais (MZN) and include applicable taxes
-          unless stated otherwise. Orders are subject to acceptance and
-          availability. We reserve the right to refuse or cancel any order.
-          Payments can be made through wallet balance, M-Pesa, bank card, or
-          other methods displayed at checkout.{"\n\n"}
-          <Text className="font-bold">4. Loyalty Points{"\n"}</Text>
-          Points earned through purchases and promotions have no cash value and
-          are non-transferable. Coffee Buzz may modify or discontinue the
-          loyalty program at any time.{"\n\n"}
-          <Text className="font-bold">5. User Conduct{"\n"}</Text>
-          You agree not to misuse the app, create fraudulent accounts, or engage
-          in any activity that could harm Coffee Buzz or its users.{"\n\n"}
-          <Text className="font-bold">6. Limitation of Liability{"\n"}</Text>
-          Coffee Buzz shall not be liable for any indirect, incidental, or
-          consequential damages arising from your use of the app.{"\n\n"}
-          <Text className="font-bold">7. Changes to Terms{"\n"}</Text>
-          We may update these Terms from time to time. Continued use of Coffee
-          Buzz constitutes acceptance of any changes.{"\n\n"}
-          Last updated: 19 July 2025. For questions, contact{" "}
-          <Text className="text-brown-600">support@coffeebuzz.com</Text>.
-        </Text>
+        {/* Select Date */}
+        <Text className="text-lg font-semibold mb-2">Select Date</Text>
+        <TextInput
+          placeholder="YYYY-MM-DD"
+          value={selectedDate}
+          onChangeText={setSelectedDate}
+          className="border border-gray-300 rounded-lg p-3 mb-6"
+        />
+
+        {/* Available Times */}
+        <Text className="text-lg font-semibold mb-2">Available Times</Text>
+        <View className="flex-row flex-wrap gap-2 mb-6 justify-between">
+          {times.map((time) => (
+            <TouchableOpacity
+              key={time}
+              onPress={() => setSelectedTime(time)}
+              className={`px-6 py-3 rounded-xl border ${
+                selectedTime === time
+                  ? "bg-background border-background"
+                  : "border-gray-300"
+              }`}
+            >
+              <Text
+                className={`${
+                  selectedTime === time ? "text-white" : "text-gray-700"
+                }`}
+              >
+                {time}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Number of People */}
+        <Text className="text-lg font-semibold mb-2">Number of People</Text>
+        <View className="flex-row flex-wrap gap-2 mb-6 justify-between">
+          {[...Array(8).keys()].map((i) => {
+            const num = i + 1;
+            return (
+              <TouchableOpacity
+                key={num}
+                onPress={() => setSelectedPeople(num)}
+                className={`w-[80px] h-12 rounded-xl items-center justify-center border ${
+                  selectedPeople === num
+                    ? "bg-background border-background"
+                    : "border-gray-300"
+                }`}
+              >
+                <Text
+                  className={`font-semibold ${
+                    selectedPeople === num ? "text-white" : "text-gray-700"
+                  }`}
+                >
+                  {num}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {/* Special Requests */}
+        <Text className="text-lg font-semibold mb-2">Special Requests (optional)</Text>
+        <TextInput
+          placeholder="e.g. Birthday, Window seat..."
+          value={specialRequest}
+          onChangeText={setSpecialRequest}
+          className="border border-gray-300 rounded-lg p-3 mb-10 h-24 text-gray-700"
+          multiline
+        />
       </ScrollView>
 
       {/* FOOTER FIXO */}
       <View className="border-t border-gray-200 p-6 bg-white">
         <View className="items-end">
           <TouchableOpacity
-            onPress={() => router.push("/home")}
+            onPress={() => {
+              console.log({
+                selectedDate,
+                selectedTime,
+                selectedPeople,
+                specialRequest,
+              });
+              router.push("/home");
+            }}
             className="w-full h-14 rounded-full bg-background items-center justify-center shadow-md"
           >
-            <Text className="text-white font-bold text-lg">Confirm Reservation</Text>
+            <Text className="text-white font-bold text-lg">
+              Confirm Reservation
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
