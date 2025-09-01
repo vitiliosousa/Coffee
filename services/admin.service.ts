@@ -24,7 +24,7 @@ export interface Product {
   display_order?: number;
   created_at: string;
   updated_at: string;
-  category?: Category; // já vem embutido no JSON
+  category?: Category; 
 }
 
 export interface Variant {

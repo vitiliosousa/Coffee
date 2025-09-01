@@ -99,7 +99,6 @@ export default function Home() {
             <Link href="/wallet">
               <Wallet size={20} color="#503B36" />
             </Link>
-            <User size={20} color="#503B36" />
           </View>
         </View>
       </View>

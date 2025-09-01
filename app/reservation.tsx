@@ -129,7 +129,7 @@ export default function Reservation() {
                 selectedPeople,
                 specialRequest,
               });
-              router.push("/home");
+              router.push("/myreservation");
             }}
             className="w-full h-14 rounded-full bg-background items-center justify-center shadow-md"
           >
