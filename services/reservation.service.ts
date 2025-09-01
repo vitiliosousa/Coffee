@@ -4,7 +4,6 @@ const API_BASE_URL = "http://162.245.188.169:8045/api/v1";
 
 export interface Reservation {
   id: string;
-  table_id: string;
   date: string;
   start_time: string;
   guests_count: number;
@@ -15,10 +14,8 @@ export interface Reservation {
 }
 
 export interface AvailabilitySlot {
-  table_id: string;
-  date: string;
-  start_time: string;
-  is_available: boolean;
+  time: string;      // ISO 8601
+  available: boolean;
 }
 
 export interface ReservationResponse {
@@ -40,9 +37,7 @@ export interface ReservationsResponse {
 export interface AvailabilityResponse {
   status: string;
   message: string;
-  data: {
-    availability: AvailabilitySlot[];
-  };
+  data: AvailabilitySlot[];
 }
 
 class ReservationService {
@@ -69,9 +64,8 @@ class ReservationService {
     return data;
   }
 
-  // 1️⃣ Criar reserva
+  // 1️⃣ Criar reserva (sem table_id)
   async createReservation(reservation: {
-    table_id: string;
     date: string;
     start_time: string;
     guests_count: number;
@@ -86,10 +80,10 @@ class ReservationService {
     );
   }
 
-  // 2️⃣ Listar horários disponíveis
-  async listAvailability(): Promise<AvailabilityResponse> {
+  // 2️⃣ Listar horários disponíveis (agora recebe a data como query param)
+  async listAvailability(date: string): Promise<AvailabilityResponse> {
     return this.makeAuthenticatedRequest<AvailabilityResponse>(
-      "/users/availability",
+      `/users/availability?date=${date}`,
       { method: "GET" }
     );
   }
