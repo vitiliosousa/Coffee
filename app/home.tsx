@@ -146,7 +146,7 @@ export default function Home() {
               <Text className="text-background text-lg font-bold">Full Menu</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => router.push("/menu/[id]")}
+              onPress={() => router.push("/loyalty")}
               className="bg-white flex-1 rounded-2xl p-5 items-center justify-center gap-4"
             >
               <View className="p-5 bg-fundoescuro rounded-xl items-center justify-center">
@@ -204,9 +204,11 @@ export default function Home() {
       </ScrollView>
 
       <View className="flex-row justify-between items-center bg-white p-6 border-t border-gray-300 absolute bottom-0 left-0 right-0">
-        <View className="p-4 bg-fundoescuro rounded-full">
+        <TouchableOpacity 
+        onPress={() => router.push("/myreservation")}
+        className="p-4">
           <Coffee size={20} color="#503B36" />
-        </View>
+        </TouchableOpacity>
         <TouchableOpacity
         onPress={() => router.push("/reservation")}
          className="p-4">
@@ -219,9 +221,11 @@ export default function Home() {
           <Text className="text-white text-xl font-bold text-center">Order</Text>
           <Menu size={20} color="#FFFFFF" />
         </TouchableOpacity>
-        <View className="p-4">
+        <TouchableOpacity
+        onPress={() => router.push("/loyalty")}
+        className="p-4">
           <Star size={20} color="#503B36" />
-        </View>
+        </TouchableOpacity>
         <TouchableOpacity
           onPress={() => router.push("/profile")}
         className="p-4">

@@ -1,18 +1,18 @@
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  TextInput,
-  Alert,
-  ActivityIndicator,
-} from "react-native";
-import { useState, useEffect } from "react";
-import { useRouter, Link } from "expo-router";
-import { ChevronLeft } from "lucide-react-native";
+import CalendarPicker from "@/components/CalendarPicker";
 import DotsWhite from "@/components/DotsWhite";
 import { reservationService } from "@/services/reservation.service";
-import CalendarPicker from "@/components/CalendarPicker";
+import { Link, useRouter } from "expo-router";
+import { ChevronLeft } from "lucide-react-native";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function Reservation() {
   const router = useRouter();
@@ -51,11 +51,24 @@ export default function Reservation() {
 
     try {
       setLoading(true);
+      
+      // Garantir que o start_time seja enviado apenas no formato HH:MM
+      let formattedTime = selectedTime;
+      
+      // Se selectedTime contém formato ISO (com T), extrair apenas HH:MM
+      if (selectedTime.includes("T")) {
+        formattedTime = selectedTime.split("T")[1].slice(0, 5);
+      }
+      // Se já está no formato HH:MM:SS, pegar apenas HH:MM
+      else if (selectedTime.includes(":") && selectedTime.length > 5) {
+        formattedTime = selectedTime.slice(0, 5);
+      }
+
       await reservationService.createReservation({
-        date: selectedDate,
-        start_time: selectedTime,
-        guests_count: selectedPeople,
-        special_requests: specialRequest,
+        date: selectedDate, // já está no formato YYYY-MM-DD
+        start_time: formattedTime, // formato HH:MM
+        guests_count: selectedPeople, // número inteiro
+        special_requests: specialRequest || "", // string vazia se não preenchido
       });
 
       Alert.alert("Sucesso", "Reserva criada com sucesso!");
@@ -66,6 +79,14 @@ export default function Reservation() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Função auxiliar para formatar o tempo exibido
+  const formatDisplayTime = (time: string) => {
+    if (time.includes("T")) {
+      return time.split("T")[1].slice(0, 5); // HH:MM do formato ISO
+    }
+    return time.slice(0, 5); // HH:MM se já estiver em formato de hora
   };
 
   return (
@@ -106,7 +127,7 @@ export default function Reservation() {
                 <TouchableOpacity
                   key={slot.time}
                   onPress={() => slot.available && setSelectedTime(slot.time)}
-                  disabled={!slot.available} // desativa se não disponível
+                  disabled={!slot.available}
                   className={`w-[80px] h-12 items-center justify-center rounded-lg border ${
                     isSelected
                       ? "bg-background border-background"
@@ -124,7 +145,7 @@ export default function Reservation() {
                         : "text-gray-400"
                     }`}
                   >
-                    {slot.time.split("T")[1].slice(0, 5)} {/* HH:MM */}
+                    {formatDisplayTime(slot.time)}
                   </Text>
                 </TouchableOpacity>
               );
