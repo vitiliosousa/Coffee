@@ -24,7 +24,7 @@ export interface Product {
   display_order?: number;
   created_at: string;
   updated_at: string;
-  category?: Category; 
+  category?: Category;
 }
 
 export interface Variant {
@@ -84,6 +84,28 @@ export interface VariantResponse {
   };
 }
 
+export interface Campaign {
+  id: string;
+  title: string;
+  type: string;
+  description: string;
+  start_date: string;
+  end_date: string;
+  image_url: string;
+  send_notification: boolean;
+  channels: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ActiveCampaignsResponse {
+  status: string;
+  message: string;
+  data: {
+    count: number;
+    data: Campaign[];
+  };
+}
 
 class AdminService {
   private async makeAuthenticatedRequest<T>(
@@ -201,6 +223,14 @@ class AdminService {
   async getVariantById(variantId: string): Promise<VariantResponse> {
     return this.makeAuthenticatedRequest<VariantResponse>(
       `/admin/variants/${variantId}`,
+      { method: "GET" }
+    );
+  }
+
+  // 📂 Listar campanhas ativas
+  async getActiveCampaigns(): Promise<ActiveCampaignsResponse> {
+    return this.makeAuthenticatedRequest<ActiveCampaignsResponse>(
+      "/admin/campaigns/active",
       { method: "GET" }
     );
   }

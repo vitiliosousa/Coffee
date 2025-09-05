@@ -14,7 +14,7 @@ export interface Reservation {
 }
 
 export interface AvailabilitySlot {
-  time: string;      // ISO 8601
+  time: string;     
   available: boolean;
 }
 
