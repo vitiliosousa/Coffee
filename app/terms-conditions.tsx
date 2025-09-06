@@ -23,7 +23,7 @@ export default function TermsConditions() {
             <ChevronLeft size={24} color={"#FFFFFF"} />
           </Link>
           <Text className="text-white text-2xl font-bold">
-            Terms and Conditions
+            Termos e Condições
           </Text>
         </View>
       </View>
@@ -31,36 +31,37 @@ export default function TermsConditions() {
       {/* CONTEÚDO SCROLLÁVEL */}
       <ScrollView className="flex-1 px-6 py-6">
         <Text className="text-xl text-gray-700 leading-6">
-          Welcome to Coffee Buzz! By accessing or using our application, you
-          agree to comply with and be bound by the following Terms and
-          Conditions. Please read them carefully.{"\n\n"}
-          <Text className="font-bold">1. Acceptance of Terms{"\n"}</Text>
-          By creating an account or placing an order through Coffee Buzz, you
-          acknowledge that you have read, understood, and agree to these Terms.
-          If you do not agree, please do not use the app.{"\n\n"}
-          <Text className="font-bold">2. Eligibility{"\n"}</Text>
-          You must be at least 16 years old to use Coffee Buzz. By using the
-          app, you represent and warrant that you meet this requirement.{"\n\n"}
-          <Text className="font-bold">3. Orders & Payment{"\n"}</Text>
-          All prices are listed in Meticais (MZN) and include applicable taxes
-          unless stated otherwise. Orders are subject to acceptance and
-          availability. We reserve the right to refuse or cancel any order.
-          Payments can be made through wallet balance, M-Pesa, bank card, or
-          other methods displayed at checkout.{"\n\n"}
-          <Text className="font-bold">4. Loyalty Points{"\n"}</Text>
-          Points earned through purchases and promotions have no cash value and
-          are non-transferable. Coffee Buzz may modify or discontinue the
-          loyalty program at any time.{"\n\n"}
-          <Text className="font-bold">5. User Conduct{"\n"}</Text>
-          You agree not to misuse the app, create fraudulent accounts, or engage
-          in any activity that could harm Coffee Buzz or its users.{"\n\n"}
-          <Text className="font-bold">6. Limitation of Liability{"\n"}</Text>
-          Coffee Buzz shall not be liable for any indirect, incidental, or
-          consequential damages arising from your use of the app.{"\n\n"}
-          <Text className="font-bold">7. Changes to Terms{"\n"}</Text>
-          We may update these Terms from time to time. Continued use of Coffee
-          Buzz constitutes acceptance of any changes.{"\n\n"}
-          Last updated: 19 July 2025. For questions, contact{" "}
+          Bem-vindo ao Coffee Buzz! Ao acessar ou usar nosso aplicativo, você
+          concorda em cumprir e ficar vinculado aos seguintes Termos e Condições.
+          Por favor, leia-os com atenção.{"\n\n"}
+          <Text className="font-bold">1. Aceitação dos Termos{"\n"}</Text>
+          Ao criar uma conta ou fazer um pedido através do Coffee Buzz, você
+          reconhece que leu, entendeu e concorda com estes Termos. Se você não
+          concordar, por favor, não use o aplicativo.{"\n\n"}
+          <Text className="font-bold">2. Elegibilidade{"\n"}</Text>
+          Você deve ter pelo menos 16 anos de idade para usar o Coffee Buzz. Ao usar o
+          aplicativo, você declara e garante que atende a este requisito.{"\n\n"}
+          <Text className="font-bold">3. Pedidos & Pagamento{"\n"}</Text>
+          Todos os preços são listados em Meticais (MZN) e incluem impostos
+          aplicáveis, a menos que indicado o contrário. Os pedidos estão sujeitos a
+          aceitação e disponibilidade. Reservamo-nos o direito de recusar ou cancelar
+          qualquer pedido. Os pagamentos podem ser feitos através de saldo da carteira,
+          M-Pesa, cartão bancário ou outros métodos exibidos no checkout.{"\n\n"}
+          <Text className="font-bold">4. Pontos de Fidelidade{"\n"}</Text>
+          Os pontos ganhos através de compras e promoções não têm valor em dinheiro e
+          não são transferíveis. O Coffee Buzz pode modificar ou descontinuar o
+          programa de fidelidade a qualquer momento.{"\n\n"}
+          <Text className="font-bold">5. Conduta do Usuário{"\n"}</Text>
+          Você concorda em não usar mal o aplicativo, criar contas fraudulentas ou se
+          envolver em qualquer atividade que possa prejudicar o Coffee Buzz ou seus
+          usuários.{"\n\n"}
+          <Text className="font-bold">6. Limitação de Responsabilidade{"\n"}</Text>
+          O Coffee Buzz não será responsável por quaisquer danos indiretos, incidentais
+          ou consequentes decorrentes do uso do aplicativo.{"\n\n"}
+          <Text className="font-bold">7. Alterações dos Termos{"\n"}</Text>
+          Podemos atualizar estes Termos periodicamente. O uso contínuo do Coffee
+          Buzz constitui aceitação de quaisquer alterações.{"\n\n"}
+          Última atualização: 19 de Julho de 2025. Para dúvidas, entre em contato com{" "}
           <Text className="text-brown-600">support@coffeebuzz.com</Text>.
         </Text>
       </ScrollView>
@@ -72,7 +73,7 @@ export default function TermsConditions() {
             onPress={() => router.push("/home")}
             className="w-full h-14 rounded-full bg-background items-center justify-center shadow-md"
           >
-            <Text className="text-white font-bold text-lg">Accept & Continue</Text>
+            <Text className="text-white font-bold text-lg">Aceitar e Continuar</Text>
           </TouchableOpacity>
         </View>
       </View>

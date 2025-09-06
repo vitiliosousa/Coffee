@@ -17,7 +17,7 @@ export default function Onboarding3() {
         </View>
         <View className="flex-1 items-end">
           <Link href="/login" className="text-gray-400">
-            Skip
+            Pular
           </Link>
         </View>
       </View>

@@ -226,7 +226,7 @@ export default function Home() {
               source={require("../assets/images/coffee.jpeg")}
               className="w-20 h-20 rounded-xl"
             />
-            <View>
+            <View className="flex-1">
               <Text className="text-background font-bold text-xl">
                 Cappuccino Signature
               </Text>
@@ -245,7 +245,7 @@ export default function Home() {
               source={require("../assets/images/coldbrew.jpg")}
               className="w-20 h-20 rounded-xl"
             />
-            <View>
+            <View className="flex-1">
               <Text className="text-background font-bold text-xl">
                 Cold Brew Especial
               </Text>

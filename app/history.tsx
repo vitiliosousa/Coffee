@@ -65,7 +65,7 @@ export default function History() {
         <TextInput
           value={search}
           onChangeText={setSearch}
-          placeholder="Search transactions"
+          placeholder="Procurar transacções"
           keyboardType="default"
           className="w-full border bg-white border-gray-300 rounded-lg px-4 py-4 text-lg mb-4"
         />
