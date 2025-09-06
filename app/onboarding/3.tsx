@@ -26,11 +26,11 @@ export default function Onboarding3() {
           <Smartphone color={"#FFFFFF"} size={90} />
         </View>
         <Text className="text-4xl font-bold text-center mb-3">
-          Order with Ease
+          Encomende com facilidade
         </Text>
         <Text className="text-center text-xl text-gray-600 px-4">
-          Browse our menu, customize your drinks, and place orders effortlessly.
-          Skip the line and enjoy your coffee.
+          Navegue pelo nosso menu, personalize as suas bebidas e faça os seus
+          pedidos sem esforço. Evite a fila e desfrute do seu café.
         </Text>
         <View className="flex-row gap-3 mt-8">
           <View className="w-3 h-3 rounded-full bg-gray-300" />

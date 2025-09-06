@@ -73,9 +73,9 @@ export default function Menu() {
             <ChevronLeft size={24} color={"#FFFFFF"} />
           </Link>
           <View>
-            <Text className="text-white text-2xl font-bold">Our Cafe Menu</Text>
+            <Text className="text-white text-2xl font-bold">Menu do nosso café</Text>
             <Text className="text-gray-400">
-              Crafted with love, served with passion
+              Feito com amor, servido com paixão
             </Text>
           </View>
         </View>
@@ -142,7 +142,7 @@ export default function Menu() {
           <ActivityIndicator size="large" color="#503B36" className="mt-10" />
         ) : products.length === 0 ? (
           <Text className="text-center text-gray-500 mt-10">
-            No products found
+            Nenhum produto encontrado
           </Text>
         ) : (
           products.map((item) => (
@@ -167,7 +167,7 @@ export default function Menu() {
                     {item.name}
                   </Text>
                   <Text className="text-gray-500 text-sm" numberOfLines={2}>
-                    {item.description || "No description available"}
+                    {item.description || "Nenhuma descrição disponível"}
                   </Text>
                   <Text className="text-xs text-gray-400 italic">
                     {item.category?.name || "Uncategorized"}

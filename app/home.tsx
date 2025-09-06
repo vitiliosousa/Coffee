@@ -1,13 +1,33 @@
 import { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, Image, Modal, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+  Modal,
+  Alert,
+} from "react-native";
 import { useRouter, Link } from "expo-router";
-import { Calendar, Car, Coffee, ArrowRight, Wallet, User, Menu, Star, Bell } from "lucide-react-native";
+import {
+  Calendar,
+  Car,
+  Coffee,
+  ArrowRight,
+  Wallet,
+  User,
+  Menu,
+  Star,
+  Bell,
+} from "lucide-react-native";
 import Dots from "@/components/Dots";
 import { authService, AccountInfoResponse } from "@/services/auth.service";
 
 export default function Home() {
   const router = useRouter();
-  const [accountInfo, setAccountInfo] = useState<AccountInfoResponse["data"]["account"] | null>(null);
+  const [accountInfo, setAccountInfo] = useState<
+    AccountInfoResponse["data"]["account"] | null
+  >(null);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -22,7 +42,10 @@ export default function Home() {
         }
       } catch (error: any) {
         console.error("Erro ao buscar info da conta:", error.message);
-        Alert.alert("Erro", "Não foi possível carregar as informações da conta");
+        Alert.alert(
+          "Erro",
+          "Não foi possível carregar as informações da conta"
+        );
       } finally {
         setLoading(false);
       }
@@ -46,7 +69,8 @@ export default function Home() {
           <View className="bg-white p-6 rounded-xl w-full">
             <Text className="text-xl font-bold mb-4">Conta não verificada</Text>
             <Text className="mb-6">
-              Sua conta ainda não está verificada. Você pode verificar agora para acessar todas as funcionalidades.
+              Sua conta ainda não está verificada. Você pode verificar agora
+              para acessar todas as funcionalidades.
             </Text>
             <View className="flex-row justify-between">
               <TouchableOpacity
@@ -88,9 +112,9 @@ export default function Home() {
               <Coffee size={30} color="#FFFFFF" />
             </View>
             <View className="ml-3">
-              <Text className="text-gray-600 text-xl">Good Morning ☀️</Text>
+              <Text className="text-gray-600 text-xl">Bom Dia ☀️</Text>
               <Text className="text-3xl font-bold text-background">
-                {accountInfo?.name || "Coffee Lover"}
+                {accountInfo?.name || "Amante de Café"}
               </Text>
             </View>
           </View>
@@ -103,10 +127,13 @@ export default function Home() {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: 24, paddingBottom: 100 }} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={{ padding: 24, paddingBottom: 100 }}
+        showsVerticalScrollIndicator={false}
+      >
         <View className="mt-[40px] gap-5 mb-5">
           <Text className="text-2xl font-bold text-background">
-            What would you like to do?
+            O que você gostaria de fazer?
           </Text>
         </View>
 
@@ -119,8 +146,12 @@ export default function Home() {
               <Calendar size={20} color="#FFFFFF" />
             </View>
             <View className="flex-1">
-              <Text className="text-background font-bold text-2xl">Book a table</Text>
-              <Text className="text-gray-400">Reserve your perfect spot for a cozy coffee experience</Text>
+              <Text className="text-background font-bold text-2xl">
+                Reservar uma mesa
+              </Text>
+              <Text className="text-gray-400">
+                Reserve seu lugar perfeito para uma experiência aconchegante de café
+              </Text>
             </View>
           </TouchableOpacity>
 
@@ -129,11 +160,14 @@ export default function Home() {
               <Car size={20} color="#FFFFFF" />
             </View>
             <View className="flex-1">
-              <Text className="text-background font-bold text-2xl">Drive-Thru Order</Text>
-              <Text className="text-gray-400">Quick pickup, no waiting in line</Text>
+              <Text className="text-background font-bold text-2xl">
+                Pedido no Drive-Thru
+              </Text>
+              <Text className="text-gray-400">
+                Retirada rápida, sem esperar na fila
+              </Text>
             </View>
           </View>
-
 
           <View className="flex-row gap-4 items-center justify-center">
             <TouchableOpacity
@@ -143,7 +177,9 @@ export default function Home() {
               <View className="p-5 bg-fundoescuro rounded-xl items-center justify-center">
                 <Menu />
               </View>
-              <Text className="text-background text-lg font-bold">Full Menu</Text>
+              <Text className="text-background text-lg font-bold">
+                Menu Completo
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => router.push("/loyalty")}
@@ -152,50 +188,72 @@ export default function Home() {
               <View className="p-5 bg-fundoescuro rounded-xl items-center justify-center">
                 <Star />
               </View>
-              <Text className="text-background text-lg font-bold">Rewards</Text>
+              <Text className="text-background text-lg font-bold">Recompensas</Text>
             </TouchableOpacity>
           </View>
 
           <View className="bg-background p-8 rounded-2xl gap-4">
-            <Text className="text-white font-bold text-2xl">☕ Today's Special</Text>
-            <Text className="text-gray-300 text-xl">Buy any large coffee + get a free croissant 🥐</Text>
+            <Text className="text-white font-bold text-2xl">
+              ☕ Especial do Dia
+            </Text>
+            <Text className="text-gray-300 text-xl">
+              Compre qualquer café grande + ganhe um croissant grátis 🥐
+            </Text>
             <TouchableOpacity
               onPress={() => router.push("/home")}
               className="h-14 w-32 justify-center items-center rounded-xl bg-white"
             >
-              <Text className="text-background font-bold text-lg">View Offer</Text>
+              <Text className="text-background font-bold text-lg">
+                Ver Oferta
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
 
         <View className="flex-row justify-between items-center mt-12 mb-6">
-          <Text className="text-xl font-bold text-background">🔥 Customer Favourites</Text>
+          <Text className="text-xl font-bold text-background">
+            🔥 Favoritos dos Clientes
+          </Text>
           <View className="flex-row items-center gap-2">
-            <Link href={"/home"}>See all</Link>
+            <Link href={"/home"}>Ver todos</Link>
             <ArrowRight size={20} color="#503B36" />
           </View>
         </View>
 
         <View className="flex gap-5 mb-10">
           <View className="p-5 bg-white flex-row gap-5 rounded-2xl items-center">
-            <Image source={require("../assets/images/coffee.jpeg")} className="w-20 h-20 rounded-xl" />
+            <Image
+              source={require("../assets/images/coffee.jpeg")}
+              className="w-20 h-20 rounded-xl"
+            />
             <View>
-              <Text className="text-background font-bold text-xl">Signature Cappucino</Text>
-              <Text className="text-gray-400 text-lg">Rich espresso with velvety foam</Text>
+              <Text className="text-background font-bold text-xl">
+                Cappuccino Signature
+              </Text>
+              <Text className="text-gray-400 text-lg">
+                Espresso rico com espuma aveludada
+              </Text>
               <View className="flex-row items-center justify-between">
-                <Text className="text-background font-bold text-lg">$4.50</Text>
+                <Text className="text-background font-bold text-lg">R$ 4,50</Text>
                 <Text className="text-background text-lg">4.9</Text>
               </View>
             </View>
           </View>
 
           <View className="p-5 bg-white flex-row gap-5 rounded-2xl items-center">
-            <Image source={require("../assets/images/coldbrew.jpg")} className="w-20 h-20 rounded-xl" />
+            <Image
+              source={require("../assets/images/coldbrew.jpg")}
+              className="w-20 h-20 rounded-xl"
+            />
             <View>
-              <Text className="text-background font-bold text-xl">Cold Brew Special</Text>
-              <Text className="text-gray-400 text-lg">Smooth 12-hour cold brew</Text>
+              <Text className="text-background font-bold text-xl">
+                Cold Brew Especial
+              </Text>
+              <Text className="text-gray-400 text-lg">
+                Cold brew suave de 12 horas
+              </Text>
               <View className="flex-row items-center justify-between">
-                <Text className="text-background font-bold text-lg">$4.50</Text>
+                <Text className="text-background font-bold text-lg">R$ 4,50</Text>
                 <Text className="text-background text-lg">4.9</Text>
               </View>
             </View>
@@ -204,31 +262,37 @@ export default function Home() {
       </ScrollView>
 
       <View className="flex-row justify-between items-center bg-white p-6 border-t border-gray-300 absolute bottom-0 left-0 right-0">
-        <TouchableOpacity 
-        onPress={() => router.push("/myreservation")}
-        className="p-4">
+        <TouchableOpacity
+          onPress={() => router.push("/myreservation")}
+          className="p-4"
+        >
           <Coffee size={20} color="#503B36" />
         </TouchableOpacity>
         <TouchableOpacity
-        onPress={() => router.push("/reservation")}
-         className="p-4">
+          onPress={() => router.push("/reservation")}
+          className="p-4"
+        >
           <Calendar size={20} color="#503B36" />
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => router.push("/menu")}
           className="bg-background rounded-2xl px-8 py-4 flex-row items-center justify-center gap-2"
         >
-          <Text className="text-white text-xl font-bold text-center">Order</Text>
+          <Text className="text-white text-xl font-bold text-center">
+            Pedir
+          </Text>
           <Menu size={20} color="#FFFFFF" />
         </TouchableOpacity>
         <TouchableOpacity
-        onPress={() => router.push("/loyalty")}
-        className="p-4">
+          onPress={() => router.push("/loyalty")}
+          className="p-4"
+        >
           <Star size={20} color="#503B36" />
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => router.push("/profile")}
-        className="p-4">
+          className="p-4"
+        >
           <User size={20} color="#503B36" />
         </TouchableOpacity>
       </View>

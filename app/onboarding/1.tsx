@@ -17,7 +17,7 @@ export default function Onboarding1() {
         </View>
         <View className="flex-1 items-end">
           <Link href="/login" className="text-gray-400">
-            Skip
+            Pular
           </Link>
         </View>
       </View>
@@ -26,11 +26,11 @@ export default function Onboarding1() {
           <Coffee color={"#FFFFFF"} size={90} />
         </View>
         <Text className="text-4xl font-bold text-center mb-3">
-          Welcome to Coffee Buzz
+          Bem vindo ao Coffee Buzz
         </Text>
         <Text className="text-center text-xl text-gray-600 px-4">
-          Discover premium coffee blends and artisanal treats. Your perfect
-          coffee experience starts here.
+          Descubra as melhores misturas de café e os doces artesanais. A sua experiência
+          perfeita começa aqui.
         </Text>
         <View className="flex-row gap-3 mt-8">
           <View className="w-10 h-3 rounded-full bg-orange-500" />

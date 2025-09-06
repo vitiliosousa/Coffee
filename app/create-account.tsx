@@ -62,25 +62,25 @@ export default function CreateAccount() {
           <Coffee size={30} color="#503B36" />
         </View>
         <View className="ml-3">
-          <Text className="text-4xl font-bold text-background">Welcome!</Text>
-          <Text className="text-gray-600 text-xl">Let’s get you started</Text>
+          <Text className="text-4xl font-bold text-background">Bem vindo!</Text>
+          <Text className="text-gray-600 text-xl">Vamos começar</Text>
         </View>
       </View>
 
       <View className="mt-[60px] gap-3">
         <Text className="text-3xl font-bold text-background">
-          Create your account
+          Crie sua conta
         </Text>
         <Text className="text-gray-600 text-xl">
-          Join thousands of coffee lovers
+          Junte se aos milhares de amantes do café
         </Text>
       </View>
 
       <View className="mt-10 gap-4">
         <View>
-          <Text className="text-background mb-2 font-semibold">Full Name</Text>
+          <Text className="text-background mb-2 font-semibold">Nome Completo</Text>
           <TextInput
-            placeholder="Enter your full name"
+            placeholder="Insira o seu nome completo"
             value={formData.name}
             onChangeText={(text) => setFormData({ ...formData, name: text })}
             className="w-full border bg-white border-fundoescuro rounded-lg px-4 py-4 text-lg"
@@ -89,10 +89,10 @@ export default function CreateAccount() {
 
         <View>
           <Text className="text-background mb-2 font-semibold">
-            Phone Number
+            Número de Telefone
           </Text>
           <TextInput
-            placeholder="Enter your phone number"
+            placeholder="Insira o seu número de telefone"
             keyboardType="phone-pad"
             value={formData.phone}
             onChangeText={(text) => setFormData({ ...formData, phone: text })}
@@ -102,10 +102,10 @@ export default function CreateAccount() {
 
         <View>
           <Text className="text-background mb-2 font-semibold">
-            Email Address
+            Endereço de Email
           </Text>
           <TextInput
-            placeholder="Enter your email"
+            placeholder="Insira o seu email"
             keyboardType="email-address"
             autoCapitalize="none"
             value={formData.email}
@@ -117,7 +117,7 @@ export default function CreateAccount() {
         <View>
           <Text className="text-background mb-2 font-semibold">Password</Text>
           <TextInput
-            placeholder="Create a password"
+            placeholder="Cria a sua password"
             secureTextEntry={true}
             autoCapitalize="none"
             value={formData.password}
@@ -127,7 +127,6 @@ export default function CreateAccount() {
             className="w-full border bg-white border-fundoescuro rounded-lg px-4 py-4 text-lg"
           />
         </View>
-
         <TouchableOpacity
           onPress={handleCreateAccount}
           disabled={loading}
@@ -136,28 +135,28 @@ export default function CreateAccount() {
           {loading ? (
             <ActivityIndicator color="white" />
           ) : (
-            <Text className="text-white font-semibold">Create account</Text>
+            <Text className="text-white font-semibold">Crie uma conta</Text>
           )}
         </TouchableOpacity>
       </View>
 
       <View className="mt-6 flex items-center">
         <Text className="text-black font-semibold">
-          Already have an account?{" "}
+          Já possui uma conta?{" "}
           <Link href="/login" className="text-background">
-            Log in
+            Entrar
           </Link>
         </Text>
       </View>
 
       <Text className="text-gray-500 text-sm text-center mt-10 mb-6">
-        By creating an account, you agree to our{" "}
+        Ao criar uma conta, você concorda com os{" "}
         <Link className="text-background underline" href="/terms-conditions">
-          Terms & Conditions
+          Termos & Condições
         </Link>{" "}
-        and{" "}
+        e{" "}
         <Link className="text-background underline" href="/terms-conditions">
-          Privacy Policy
+          Politicas de Privacidade
         </Link>
         .
       </Text>

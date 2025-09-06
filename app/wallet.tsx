@@ -55,7 +55,7 @@ export default function Wallet() {
           <Link href={"/home"}>
             <ChevronLeft size={24} color={"#FFFFFF"} />
           </Link>
-          <Text className="text-white text-2xl font-bold">My Wallet</Text>
+          <Text className="text-white text-2xl font-bold">Minha Carteira</Text>
         </View>
       </View>
 
@@ -63,7 +63,7 @@ export default function Wallet() {
         <View className="bg-background rounded-xl p-6 gap-6">
           <View className="flex-row items-center justify-between">
             <View className="gap-1">
-              <Text className="text-yellow-300 text-xl">Current Balance</Text>
+              <Text className="text-yellow-300 text-xl">Salto Actual</Text>
               <Text className="text-white text-4xl font-bold">
                 ${accountInfo?.data?.account.wallet_balance?.toFixed(2) ?? "0.00"}
               </Text>
@@ -73,11 +73,11 @@ export default function Wallet() {
 
           <View className="flex-row items-center justify-between">
             <View className="gap-2">
-              <Text className="text-yellow-300">Name</Text>
+              <Text className="text-yellow-300">Nome</Text>
               <Text className="text-white text-2xl">{accountInfo?.data?.account.name}</Text>
             </View>
             <View>
-              <Text className="text-yellow-300">Status</Text>
+              <Text className="text-yellow-300">Estado</Text>
               <Text className="text-white text-2xl">{accountInfo?.data?.account.status}</Text>
             </View>
           </View>
@@ -89,20 +89,20 @@ export default function Wallet() {
             className="bg-background rounded-xl p-4 flex-1 items-center justify-center gap-2"
           >
             <Plus size={24} color="#FFFFFF" />
-            <Text className="text-white text-center text-lg">Add Money</Text>
+            <Text className="text-white text-center text-lg">Adicionar dinheiro</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => router.push("/history")}
             className="bg-white rounded-xl p-4 flex-1 items-center justify-center border border-background gap-2"
           >
             <RotateCcw size={24} color="#503B36" />
-            <Text className="text-background text-center text-lg">History</Text>
+            <Text className="text-background text-center text-lg">Histórico</Text>
           </TouchableOpacity>
         </View>
 
         <View className="flex-row justify-between items-center mt-8 mb-4">
-          <Text className="text-2xl font-bold">Recent Transactions</Text>
-          <Link href={"/history"} className="text-background">View All</Link>
+          <Text className="text-2xl font-bold">Transações Recentes</Text>
+          <Link href={"/history"} className="text-background">Ver Todas</Link>
         </View>
 
         {recentTransactions.map((tx) => {

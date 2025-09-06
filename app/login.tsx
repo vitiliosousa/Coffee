@@ -57,28 +57,28 @@ export default function Login() {
         </View>
         <View className="ml-3">
           <Text className="text-4xl font-bold text-background">
-            Welcome back!
+            Bem vindo de volta!
           </Text>
-          <Text className="text-gray-600 text-xl">Nice to see you again</Text>
+          <Text className="text-gray-600 text-xl">Bom ver você de novo</Text>
         </View>
       </View>
 
       <View className="mt-[60px] gap-3">
         <Text className="text-3xl font-bold text-background">
-          Login to your account
+          Entrar na sua conta
         </Text>
         <Text className="text-gray-600 text-xl">
-          Access your coffee community
+          Acesse a sua comunidade de café
         </Text>
       </View>
 
       <View className="mt-10 gap-6">
         <View>
           <Text className="text-background mb-2 font-semibold">
-            Email Address
+            Endereço de Email
           </Text>
           <TextInput
-            placeholder="Enter your email"
+            placeholder="Insira o seu email"
             keyboardType="email-address"
             autoCapitalize="none"
             value={formData.email}
@@ -91,7 +91,7 @@ export default function Login() {
           <Text className="text-background mb-2 font-semibold">Password</Text>
           <View className="flex-row items-center border bg-white border-fundoescuro rounded-lg pr-4">
             <TextInput
-              placeholder="Enter your password"
+              placeholder="Insira a sua password"
               secureTextEntry={!showPassword}
               autoCapitalize="none"
               value={formData.password}
@@ -113,7 +113,7 @@ export default function Login() {
             onPress={() => router.push("/terms-conditions")}
             className="self-end mt-2"
           >
-            <Text className="text-background text-sm">Forgot password?</Text>
+            <Text className="text-background text-sm">Esqueceu a password?</Text>
           </TouchableOpacity>
         </View>
 
@@ -125,7 +125,7 @@ export default function Login() {
           {loading ? (
             <ActivityIndicator color="white" />
           ) : (
-            <Text className="text-white font-semibold">Login</Text>
+            <Text className="text-white font-semibold">Entrar</Text>
           )}
         </TouchableOpacity>
       </View>
@@ -134,19 +134,19 @@ export default function Login() {
         className="mt-6 flex items-center"
       >
         <Text className="text-black font-semibold">
-          Don't have an account?{" "}
-          <Text className="text-background">Create one</Text>
+          Não possui uma conta?{" "}
+          <Text className="text-background">Crie uma</Text>
         </Text>
       </TouchableOpacity>
 
       <Text className="text-gray-500 text-sm text-center mt-10 mb-6">
-        By logging in, you agree to our{" "}
+        Ao entrar, voce concorda com os {" "}
         <Link className="text-background underline" href="/terms-conditions">
-          Terms & Conditions
+          Termos & Condições
         </Link>{" "}
-        and{" "}
+        e as {" "}
         <Link className="text-background underline" href="/terms-conditions">
-          Privacy Policy
+          Politicas de Privacidade
         </Link>
       </Text>
     </ScrollView>

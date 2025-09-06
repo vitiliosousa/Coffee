@@ -25,12 +25,12 @@ export default function Index() {
           </View>
           <Text className="text-5xl font-bold text-white">Coffee Buzz</Text>
           <Text className="text-lg text-gray-200">
-            Where every sip tells a story
+            Onde cada gole conta uma história
           </Text>
         </View>
         <View className="absolute bottom-10 gap-4">
           <LoadingDots />
-          <Text className="text-gray-400 italic">Brewing your perfect experience</Text>
+          <Text className="text-gray-400 italic">Criando a sua experiência perfeita</Text>
         </View>
       </View>
     );

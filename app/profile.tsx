@@ -119,7 +119,7 @@ export default function Profile() {
           <Link href={"/home"}>
             <ChevronLeft size={24} color={"#FFFFFF"} />
           </Link>
-          <Text className="text-white text-2xl font-bold">Edit Profile</Text>
+          <Text className="text-white text-2xl font-bold">Editar Perfil</Text>
         </View>
       </View>
 
@@ -133,9 +133,9 @@ export default function Profile() {
 
         {/* Full Name */}
         <View className="mt-8">
-          <Text className="text-lg font-semibold mb-2 text-background">Full Name</Text>
+          <Text className="text-lg font-semibold mb-2 text-background">Nome Completo</Text>
           <TextInput
-            placeholder="Enter your full name"
+            placeholder="Insira o seu nome completo"
             value={formData.name}
             onChangeText={(text) => setFormData({ ...formData, name: text })}
             className="w-full border bg-white border-fundoescuro rounded-lg px-4 py-4 text-lg"
@@ -144,9 +144,9 @@ export default function Profile() {
 
         {/* Phone Number */}
         <View className="mt-6">
-          <Text className="text-lg font-semibold mb-2 text-background">Phone No.</Text>
+          <Text className="text-lg font-semibold mb-2 text-background">Número de Telefone</Text>
           <TextInput
-            placeholder="Enter your phone number"
+            placeholder="Insira o seu número de telefone"
             value={formData.phone}
             onChangeText={(text) => setFormData({ ...formData, phone: text })}
             className="w-full border bg-white border-fundoescuro rounded-lg px-4 py-4 text-lg"
@@ -158,7 +158,7 @@ export default function Profile() {
         <View className="mt-6">
           <Text className="text-lg font-semibold mb-2 text-background">Email</Text>
           <TextInput
-            placeholder="Enter your email"
+            placeholder="Insira o seu email"
             value={formData.email}
             onChangeText={(text) => setFormData({ ...formData, email: text })}
             className="w-full border bg-white border-fundoescuro rounded-lg px-4 py-4 text-lg"
@@ -180,7 +180,7 @@ export default function Profile() {
             {saving ? (
               <ActivityIndicator color="white" />
             ) : (
-              <Text className="text-white font-bold text-lg">Save Changes</Text>
+              <Text className="text-white font-bold text-lg">Salvar Alterações</Text>
             )}
           </TouchableOpacity>
 
@@ -192,7 +192,7 @@ export default function Profile() {
             {deleting ? (
               <ActivityIndicator color="white" />
             ) : (
-              <Text className="text-white font-bold text-lg">Delete Account</Text>
+              <Text className="text-white font-bold text-lg">Apagar Conta</Text>
             )}
           </TouchableOpacity>
         </View>

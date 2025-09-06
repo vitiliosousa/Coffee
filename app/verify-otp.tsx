@@ -71,7 +71,7 @@ export default function VerifyOTP() {
           <TouchableOpacity onPress={() => router.back()}>
             <ChevronLeft size={24} color="#FFFFFF" />
           </TouchableOpacity>
-          <Text className="text-white text-2xl font-bold">Verify OTP</Text>
+          <Text className="text-white text-2xl font-bold">Verificar OTP</Text>
         </View>
       </View>
 
@@ -81,19 +81,19 @@ export default function VerifyOTP() {
       >
         <View className="mt-10 gap-6">
           <Text className="text-2xl font-semibold text-background mb-2">
-            Enter OTP Code
+            Inserir código OTP
           </Text>
           <Text className="text-gray-500 mb-4">
-            We sent a one-time password (OTP) to your registered email. Please
-            enter it below to verify your account.
+            Enviámos uma palavra-passe de uso único (OTP) para o seu e-mail registado. Por favor
+            introduza-a abaixo para verificar a sua conta.
           </Text>
 
           <View>
-            <Text className="text-background mb-2 font-semibold">OTP Code</Text>
+            <Text className="text-background mb-2 font-semibold">Código OTP</Text>
             <TextInput
               value={otp}
               onChangeText={setOtp}
-              placeholder="Enter OTP code"
+              placeholder="Inserir código OTP"
               keyboardType="numeric"
               maxLength={6} 
               autoCapitalize="none"
@@ -112,12 +112,10 @@ export default function VerifyOTP() {
               <ActivityIndicator color="white" />
             ) : (
               <Text className="text-white font-semibold text-lg">
-                Verify OTP
+                Verificar OTP
               </Text>
             )}
           </TouchableOpacity>
-
-        
           <TouchableOpacity
             disabled={resendingOTP}
             onPress={handleResendOTP}
@@ -127,17 +125,15 @@ export default function VerifyOTP() {
               <ActivityIndicator color="#503B36" />
             ) : (
               <Text className="text-background font-semibold text-lg">
-                Didn't receive code? Resend OTP
+                Não recebeu o codigo? Reenviar OTP
               </Text>
             )}
           </TouchableOpacity>
         </View>
-
-        
         <View className="mt-10 items-center">
           <TouchableOpacity onPress={() => router.replace("/home")}>
             <Text className="text-gray-500 font-semibold text-lg">
-              Skip for now
+              Pular por agora
             </Text>
           </TouchableOpacity>
         </View>

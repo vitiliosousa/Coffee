@@ -119,7 +119,7 @@ export default function Loyalty() {
           <Link href={"/home"}>
             <ChevronLeft size={24} color={"#FFFFFF"} />
           </Link>
-          <Text className="text-white text-2xl font-bold">Loyalty Program</Text>
+          <Text className="text-white text-2xl font-bold">Programa de Fidelidade</Text>
         </View>
       </View>
 
@@ -132,14 +132,14 @@ export default function Loyalty() {
               <Star size={40} color="#facc15" />
             </View>
             <Text className="text-3xl font-bold text-black mt-4">
-              Your Points
+              Seus Pontos
             </Text>
             {loading ? (
               <ActivityIndicator size="large" color="#503B36" />
             ) : (
               <Text className="text-5xl font-bold text-background">{userPoints}</Text>
             )}
-            <Text className="text-lg text-gray-800">Available to redeem</Text>
+            <Text className="text-lg text-gray-800">Disponível para resgatar</Text>
           </View>
         </View>
 
@@ -147,7 +147,7 @@ export default function Loyalty() {
         <View className="p-6 flex-1 gap-6">
           <View className="flex-row items-center justify-between">
             <Text className="text-2xl font-bold text-black">
-              Active Campaigns
+              Campanhas activas
             </Text>
             {campaignsLoading && (
               <ActivityIndicator color="#503B36" />
@@ -157,16 +157,16 @@ export default function Loyalty() {
           {campaignsLoading ? (
             <View className="items-center py-8">
               <ActivityIndicator size="large" color="#503B36" />
-              <Text className="text-gray-600 mt-2">Loading campaigns...</Text>
+              <Text className="text-gray-600 mt-2">Carregamento de campanhas...</Text>
             </View>
           ) : campaigns.length === 0 ? (
             <View className="items-center py-8">
               <Gift size={40} color="#BCA9A1" />
               <Text className="text-xl font-semibold text-gray-600 mt-2">
-                No active campaigns
+                Nenhuma campanha activa
               </Text>
               <Text className="text-gray-500 text-center mt-2">
-                New campaigns will appear here
+                As novas campanhas aparecerão aqui
               </Text>
             </View>
           ) : (

@@ -55,7 +55,7 @@ export default function History() {
             <ChevronLeft size={24} color={"#FFFFFF"} />
           </Link>
           <Text className="text-white text-2xl font-bold">
-            Transaction History
+            Historico de Transações
           </Text>
         </View>
       </View>
@@ -97,7 +97,7 @@ export default function History() {
           <ActivityIndicator size="large" color="#000" />
         ) : filteredTransactions.length === 0 ? (
           <Text className="text-center text-gray-500 mt-10">
-            No transactions found
+            Não foram encontradas transacções
           </Text>
         ) : (
           filteredTransactions.map((tx) => {

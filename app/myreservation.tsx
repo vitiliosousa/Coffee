@@ -208,7 +208,7 @@ export default function MyReservation() {
             <Link href={"/home"}>
               <ChevronLeft size={24} color={"#FFFFFF"} />
             </Link>
-            <Text className="text-white text-2xl font-bold">My Reservations</Text>
+            <Text className="text-white text-2xl font-bold">Minhas Reservas</Text>
           </View>
         </View>
         
@@ -231,7 +231,7 @@ export default function MyReservation() {
           <Link href={"/home"}>
             <ChevronLeft size={24} color={"#FFFFFF"} />
           </Link>
-          <Text className="text-white text-2xl font-bold">My Reservations</Text>
+          <Text className="text-white text-2xl font-bold">Minhas Reservas</Text>
         </View>
       </View>
 
@@ -260,7 +260,7 @@ export default function MyReservation() {
             className="w-full h-14 rounded-full bg-background items-center justify-center shadow-md"
           >
             <Text className="text-white font-bold text-lg">
-              Book New Reservation
+              Fazer nova reserva
             </Text>
           </TouchableOpacity>
         </View>

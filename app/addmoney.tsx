@@ -78,7 +78,7 @@ export default function AddMoney() {
           <Link href={"/wallet"}>
             <ChevronLeft size={24} color={"#FFFFFF"} />
           </Link>
-          <Text className="text-white text-2xl font-bold">Add Money</Text>
+          <Text className="text-white text-2xl font-bold">Adicionar Dinheiro</Text>
         </View>
       </View>
 
@@ -86,7 +86,7 @@ export default function AddMoney() {
         {/* Campo de valor */}
         <View className="mb-6 gap-4">
           <Text className="text-2xl font-semibold mb-2 text-background">
-            Enter Amount
+            Introduzir o montante
           </Text>
           <TextInput
             value={amount}
@@ -112,7 +112,7 @@ export default function AddMoney() {
         {/* Campo de telefone */}
         <View className="mb-6 gap-4">
           <Text className="text-2xl font-semibold mb-2 text-background">
-            Phone Number
+            Número de Telefone (Mpesa)
           </Text>
           <TextInput
             value={phone}
@@ -124,7 +124,7 @@ export default function AddMoney() {
         </View>
 
         <Text className="text-2xl font-semibold mb-3 text-background">
-          Choose Payment Method
+          Selecionar o método de pagamento
         </Text>
 
         <View className="gap-4">
@@ -139,9 +139,9 @@ export default function AddMoney() {
             <Banknote size={28} color="#3b82f6" />
             <View>
               <Text className="text-lg font-semibold text-background">
-                Bank Transfer
+                Transferencia Bancária
               </Text>
-              <Text>Direct Bank Transfer</Text>
+              <Text>Transferencia Bancaria Directa</Text>
             </View>
           </TouchableOpacity>
 
@@ -158,7 +158,7 @@ export default function AddMoney() {
               <Text className="text-lg font-semibold text-background">
                 Mpesa
               </Text>
-              <Text className="text-gray-500">Mobile money transfer</Text>
+              <Text className="text-gray-500">Transferência de dinheiro móvel</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -173,7 +173,7 @@ export default function AddMoney() {
           }`}
         >
           <Text className="text-white font-semibold text-lg">
-            {loading ? "Processing..." : "Confirm Deposit"}
+            {loading ? "Processando..." : "Confirmar Deposito"}
           </Text>
         </TouchableOpacity>
       </ScrollView>

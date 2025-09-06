@@ -17,7 +17,9 @@ export default function MenuDetails() {
   const { id } = useLocalSearchParams(); // id do produto
   const [product, setProduct] = useState<Product | null>(null);
   const [variants, setVariants] = useState<Variant[]>([]);
-  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
+    null
+  );
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
 
@@ -31,7 +33,11 @@ export default function MenuDetails() {
         setProduct(productResponse.data.product);
 
         const variantsResponse = await adminService.listVariants(id as string);
-        setVariants(Array.isArray(variantsResponse.data.variants) ? variantsResponse.data.variants : []);
+        setVariants(
+          Array.isArray(variantsResponse.data.variants)
+            ? variantsResponse.data.variants
+            : []
+        );
       } catch (error) {
         console.error("Erro ao buscar produto ou variantes:", error);
       } finally {
@@ -44,7 +50,8 @@ export default function MenuDetails() {
 
   const getFinalPrice = () => {
     if (!product) return 0;
-    const variantPrice = variants.find(v => v.id === selectedVariantId)?.price_adjustment || 0;
+    const variantPrice =
+      variants.find((v) => v.id === selectedVariantId)?.price_adjustment || 0;
     return ((product.price as number) + variantPrice) * quantity;
   };
 
@@ -75,14 +82,16 @@ export default function MenuDetails() {
           <TouchableOpacity onPress={() => router.back()}>
             <ChevronLeft size={24} color="#FFFFFF" />
           </TouchableOpacity>
-          <Text className="text-white text-2xl font-bold">Detail</Text>
+          <Text className="text-white text-2xl font-bold">Detalhes</Text>
         </View>
       </View>
 
       <ScrollView className="flex-1 p-6 bg-white">
         <View className="flex-1 items-center justify-center mt-10">
           <Image
-            source={{ uri: product.image_url || "https://via.placeholder.com/300" }}
+            source={{
+              uri: product.image_url || "https://via.placeholder.com/300",
+            }}
             className="h-72 w-72 rounded-full"
           />
         </View>
@@ -98,20 +107,28 @@ export default function MenuDetails() {
         {/* Variantes do produto */}
         {variants.length > 0 && (
           <>
-            <Text className="text-2xl font-bold mt-10 mb-4">Choice of Variant</Text>
+            <Text className="text-2xl font-bold mt-10 mb-4">
+              Escolha da variante
+            </Text>
             <View className="flex-1 gap-3">
               {variants.map((variant) => (
                 <TouchableOpacity
                   key={variant.id}
                   onPress={() => setSelectedVariantId(variant.id)}
                   className={`border flex-row justify-between items-center p-4 rounded-xl mt-2 ${
-                    selectedVariantId === variant.id ? "border-background bg-background" : "border-gray-300"
+                    selectedVariantId === variant.id
+                      ? "border-background bg-background"
+                      : "border-gray-300"
                   }`}
                 >
-                  <Text className={`text-lg ${selectedVariantId === variant.id ? "text-white" : "text-gray-700"}`}>
+                  <Text
+                    className={`text-lg ${selectedVariantId === variant.id ? "text-white" : "text-gray-700"}`}
+                  >
                     {variant.name}
                   </Text>
-                  <Text className={`text-lg font-bold ${selectedVariantId === variant.id ? "text-white" : "text-gray-700"}`}>
+                  <Text
+                    className={`text-lg font-bold ${selectedVariantId === variant.id ? "text-white" : "text-gray-700"}`}
+                  >
                     ${variant.price_adjustment.toFixed(2)}
                   </Text>
                 </TouchableOpacity>
@@ -123,14 +140,14 @@ export default function MenuDetails() {
         {/* Seleção de quantidade */}
         <View className="flex-row justify-center items-center mt-10 mb-10 gap-4">
           <TouchableOpacity
-            onPress={() => setQuantity(prev => Math.max(1, prev - 1))}
+            onPress={() => setQuantity((prev) => Math.max(1, prev - 1))}
             className="border border-background rounded-full p-5"
           >
             <Minus size={20} color="#503B36" />
           </TouchableOpacity>
           <Text className="text-3xl">{quantity}</Text>
           <TouchableOpacity
-            onPress={() => setQuantity(prev => prev + 1)}
+            onPress={() => setQuantity((prev) => prev + 1)}
             className="border border-background rounded-full p-5"
           >
             <Plus size={20} color="#503B36" />
@@ -143,7 +160,9 @@ export default function MenuDetails() {
           onPress={() => router.push("/home")}
           className="w-full h-14 rounded-full bg-background items-center justify-center shadow-md"
         >
-          <Text className="text-white font-bold text-lg">Add to Cart</Text>
+          <Text className="text-white font-bold text-lg">
+            Adicionar ao carrinho
+          </Text>
         </TouchableOpacity>
       </View>
     </View>

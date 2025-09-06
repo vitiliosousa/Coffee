@@ -17,7 +17,7 @@ export default function Onboarding2() {
         </View>
         <View className="flex-1 items-end">
           <Link href="/login" className="text-gray-400">
-            Skip
+            Pular
           </Link>
         </View>
       </View>
@@ -26,11 +26,11 @@ export default function Onboarding2() {
           <Heart color={"#FFFFFF"} size={90} />
         </View>
         <Text className="text-4xl font-bold text-center mb-3">
-          Personalized Just for You
+          Personalizado só para si
         </Text>
         <Text className="text-center text-xl text-gray-600 px-4">
-          Set your preferences and get tailored recommendations, exclusive
-          offers, and rewards that match your taste.
+          Defina as suas preferências e obtenha recomendações personalizadas,
+          ofertas exclusivas em e recompensas que correspondem ao seu gosto.
         </Text>
         <View className="flex-row gap-3 mt-8">
           <View className="w-3 h-3 rounded-full bg-gray-300" />

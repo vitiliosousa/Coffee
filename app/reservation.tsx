@@ -100,14 +100,14 @@ export default function Reservation() {
           <Link href={"/home"}>
             <ChevronLeft size={24} color={"#FFFFFF"} />
           </Link>
-          <Text className="text-white text-2xl font-bold">Table Reservation</Text>
+          <Text className="text-white text-2xl font-bold">Reserva de Mesa</Text>
         </View>
       </View>
 
       {/* CONTEÚDO SCROLLÁVEL */}
       <ScrollView className="flex-1 px-6 py-6">
         {/* Select Date */}
-        <Text className="text-lg font-semibold mb-2">Select Date</Text>
+        <Text className="text-lg font-semibold mb-2">Selecione a Data</Text>
         <CalendarPicker
           onDateChange={(date) =>
             setSelectedDate(date.toISOString().split("T")[0])
@@ -116,7 +116,7 @@ export default function Reservation() {
         <Text className="mt-2 text-gray-700">Data escolhida: {selectedDate}</Text>
 
         {/* Available Times */}
-        <Text className="text-lg font-semibold mt-6 mb-2">Available Times</Text>
+        <Text className="text-lg font-semibold mt-6 mb-2">Horas disponiveis</Text>
         {loadingAvailability ? (
           <ActivityIndicator size="small" color="#000" />
         ) : availability.length > 0 ? (
@@ -156,7 +156,7 @@ export default function Reservation() {
         )}
 
         {/* Number of People */}
-        <Text className="text-lg font-semibold mb-2">Number of People</Text>
+        <Text className="text-lg font-semibold mb-2">Numero de Pessoas</Text>
         <View className="flex-row flex-wrap gap-2 mb-6 justify-between">
           {[...Array(8).keys()].map((i) => {
             const num = i + 1;
@@ -184,7 +184,7 @@ export default function Reservation() {
 
         {/* Special Requests */}
         <Text className="text-lg font-semibold mb-2">
-          Special Requests (optional)
+          Pedido Especial (opcional)
         </Text>
         <TextInput
           placeholder="e.g. Birthday, Window seat..."
@@ -207,7 +207,7 @@ export default function Reservation() {
               <ActivityIndicator color="#fff" />
             ) : (
               <Text className="text-white font-bold text-lg">
-                Confirm Reservation
+                Confirmar Reserva
               </Text>
             )}
           </TouchableOpacity>
