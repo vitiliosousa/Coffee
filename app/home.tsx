@@ -173,7 +173,10 @@ export default function Home() {
             </View>
           </TouchableOpacity>
 
-          <View className="flex-row gap-4 bg-white p-5 rounded-2xl">
+          <TouchableOpacity
+            onPress={() => router.push("/reservation")}
+            className="flex-row gap-4 bg-white p-5 rounded-2xl"
+          >
             <View className="bg-background rounded-xl p-5 items-center justify-center">
               <Car size={20} color="#FFFFFF" />
             </View>
@@ -185,7 +188,7 @@ export default function Home() {
                 Retirada rápida, sem esperar na fila
               </Text>
             </View>
-          </View>
+          </TouchableOpacity>
 
           <View className="flex-row gap-4 items-center justify-center">
             <TouchableOpacity
@@ -220,7 +223,7 @@ export default function Home() {
               Compre qualquer café grande + ganhe um croissant grátis 🥐
             </Text>
             <TouchableOpacity
-              onPress={() => router.push("/home")}
+              onPress={() => router.push("/promotions")}
               className="h-14 w-32 justify-center items-center rounded-xl bg-white"
             >
               <Text className="text-background font-bold text-lg">
@@ -235,7 +238,7 @@ export default function Home() {
             🔥 Favoritos dos Clientes
           </Text>
           <View className="flex-row items-center gap-2">
-            <Link href={"/home"}>Ver todos</Link>
+            <Link href={"/menu"}>Ver todos</Link>
             <ArrowRight size={20} color="#503B36" />
           </View>
         </View>
