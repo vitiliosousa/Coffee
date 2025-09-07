@@ -40,9 +40,12 @@ export default function Home() {
 
         // Verifica se veio de um login (parâmetro fromLogin = true)
         // E se a conta não está verificada
-        if (response.data.account.status !== "active" && params.fromLogin === "true") {
+        if (
+          response.data.account.status !== "active" &&
+          params.fromLogin === "true"
+        ) {
           setShowVerificationModal(true);
-          
+
           // Remove o parâmetro da URL para não mostrar novamente
           router.replace("/home");
         }
@@ -96,7 +99,8 @@ export default function Home() {
               </TouchableOpacity>
               <TouchableOpacity
                 className="bg-background px-4 py-2 rounded-xl flex-1 ml-2 items-center justify-center"
-                onPress={handleVerifyNow}>
+                onPress={handleVerifyNow}
+              >
                 <Text className="text-white font-bold">Verificar agora</Text>
               </TouchableOpacity>
             </View>
@@ -163,7 +167,8 @@ export default function Home() {
                 Reservar uma mesa
               </Text>
               <Text className="text-gray-400">
-                Reserve seu lugar perfeito para uma experiência aconchegante de café
+                Reserve seu lugar perfeito para uma experiência aconchegante de
+                café
               </Text>
             </View>
           </TouchableOpacity>
@@ -201,7 +206,9 @@ export default function Home() {
               <View className="p-5 bg-fundoescuro rounded-xl items-center justify-center">
                 <Star />
               </View>
-              <Text className="text-background text-lg font-bold">Recompensas</Text>
+              <Text className="text-background text-lg font-bold">
+                Recompensas
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -247,7 +254,9 @@ export default function Home() {
                 Espresso rico com espuma aveludada
               </Text>
               <View className="flex-row items-center justify-between">
-                <Text className="text-background font-bold text-lg">R$ 4,50</Text>
+                <Text className="text-background font-bold text-lg">
+                  R$ 4,50
+                </Text>
                 <Text className="text-background text-lg">4.9</Text>
               </View>
             </View>
@@ -266,7 +275,9 @@ export default function Home() {
                 Cold brew suave de 12 horas
               </Text>
               <View className="flex-row items-center justify-between">
-                <Text className="text-background font-bold text-lg">R$ 4,50</Text>
+                <Text className="text-background font-bold text-lg">
+                  R$ 4,50
+                </Text>
                 <Text className="text-background text-lg">4.9</Text>
               </View>
             </View>

@@ -14,9 +14,21 @@ import {
   View,
 } from "react-native";
 
+// Função utilitária para obter a data de hoje no formato YYYY-MM-DD
+const getTodayDate = (): string => {
+  const today = new Date();
+  return today.toISOString().split("T")[0];
+};
+
+// Função utilitária para obter o objeto Date de hoje
+const getTodayDateObject = (): Date => {
+  return new Date();
+};
+
 export default function Reservation() {
   const router = useRouter();
-  const [selectedDate, setSelectedDate] = useState(""); // YYYY-MM-DD
+  // Inicializa com a data de hoje
+  const [selectedDate, setSelectedDate] = useState(getTodayDate()); 
   const [selectedTime, setSelectedTime] = useState("");
   const [selectedPeople, setSelectedPeople] = useState(1);
   const [specialRequest, setSpecialRequest] = useState("");
@@ -29,8 +41,8 @@ export default function Reservation() {
     if (!selectedDate) return;
     try {
       setLoadingAvailability(true);
-      const response = await reservationService.listAvailability(selectedDate); // passa a data
-      setAvailability(response.data); // mantém todos os horários
+      const response = await reservationService.listAvailability(selectedDate);
+      setAvailability(response.data);
     } catch (error: any) {
       console.error("Erro ao carregar disponibilidade:", error);
       Alert.alert("Erro", "Não foi possível carregar horários disponíveis.");
@@ -39,6 +51,8 @@ export default function Reservation() {
     }
   };
 
+  // Carrega os horários disponíveis quando o componente monta (com data de hoje)
+  // e quando a data ou número de pessoas muda
   useEffect(() => {
     fetchAvailability();
   }, [selectedDate, selectedPeople]);
@@ -89,6 +103,27 @@ export default function Reservation() {
     return time.slice(0, 5); // HH:MM se já estiver em formato de hora
   };
 
+  // Função para formatar a data para exibição (mais amigável)
+  const formatDisplayDate = (dateString: string) => {
+    const date = new Date(dateString + 'T00:00:00'); // Adiciona horário para evitar problemas de timezone
+    const today = getTodayDateObject();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    // Verifica se é hoje
+    if (dateString === getTodayDate()) {
+      return `Hoje (${date.toLocaleDateString('pt-BR')})`;
+    }
+    
+    // Verifica se é amanhã
+    if (dateString === tomorrow.toISOString().split("T")[0]) {
+      return `Amanhã (${date.toLocaleDateString('pt-BR')})`;
+    }
+    
+    // Retorna data normal
+    return date.toLocaleDateString('pt-BR');
+  };
+
   return (
     <View className="flex-1 bg-white">
       {/* HEADER FIXO */}
@@ -109,14 +144,17 @@ export default function Reservation() {
         {/* Select Date */}
         <Text className="text-lg font-semibold mb-2">Selecione a Data</Text>
         <CalendarPicker
+          initialDate={getTodayDateObject()} // Passa a data de hoje como inicial
           onDateChange={(date) =>
             setSelectedDate(date.toISOString().split("T")[0])
           }
         />
-        <Text className="mt-2 text-gray-700">Data escolhida: {selectedDate}</Text>
+        <Text className="mt-2 text-gray-700">
+          Data escolhida: {formatDisplayDate(selectedDate)}
+        </Text>
 
         {/* Available Times */}
-        <Text className="text-lg font-semibold mt-6 mb-2">Horas disponiveis</Text>
+        <Text className="text-lg font-semibold mt-6 mb-2">Horas disponíveis</Text>
         {loadingAvailability ? (
           <ActivityIndicator size="small" color="#000" />
         ) : availability.length > 0 ? (
@@ -156,7 +194,7 @@ export default function Reservation() {
         )}
 
         {/* Number of People */}
-        <Text className="text-lg font-semibold mb-2">Numero de Pessoas</Text>
+        <Text className="text-lg font-semibold mb-2">Número de Pessoas</Text>
         <View className="flex-row flex-wrap gap-2 mb-6 justify-between">
           {[...Array(8).keys()].map((i) => {
             const num = i + 1;
