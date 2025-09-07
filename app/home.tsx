@@ -8,7 +8,7 @@ import {
   Modal,
   Alert,
 } from "react-native";
-import { useRouter, Link } from "expo-router";
+import { useRouter, Link, useLocalSearchParams } from "expo-router";
 import {
   Calendar,
   Car,
@@ -25,6 +25,7 @@ import { authService, AccountInfoResponse } from "@/services/auth.service";
 
 export default function Home() {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const [accountInfo, setAccountInfo] = useState<
     AccountInfoResponse["data"]["account"] | null
   >(null);
@@ -37,8 +38,13 @@ export default function Home() {
         const response = await authService.getAccountInfo();
         setAccountInfo(response.data.account);
 
-        if (response.data.account.status !== "active") {
+        // Verifica se veio de um login (parâmetro fromLogin = true)
+        // E se a conta não está verificada
+        if (response.data.account.status !== "active" && params.fromLogin === "true") {
           setShowVerificationModal(true);
+          
+          // Remove o parâmetro da URL para não mostrar novamente
+          router.replace("/home");
         }
       } catch (error: any) {
         console.error("Erro ao buscar info da conta:", error.message);
@@ -52,7 +58,16 @@ export default function Home() {
     };
 
     fetchAccountInfo();
-  }, []);
+  }, [params.fromLogin]);
+
+  const handleVerifyNow = () => {
+    setShowVerificationModal(false);
+    router.push("/verify-otp");
+  };
+
+  const handleContinueWithoutVerification = () => {
+    setShowVerificationModal(false);
+  };
 
   if (loading) {
     return (
@@ -75,14 +90,13 @@ export default function Home() {
             <View className="flex-row justify-between">
               <TouchableOpacity
                 className="bg-gray-300 px-4 py-2 rounded-xl mr-2 text-center flex-1 items-center justify-center"
-                onPress={() => setShowVerificationModal(false)}
+                onPress={handleContinueWithoutVerification}
               >
                 <Text>Continuar sem verificação</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 className="bg-background px-4 py-2 rounded-xl flex-1 ml-2 items-center justify-center"
-                onPress={() => router.push("/verify-otp")}
-              >
+                onPress={handleVerifyNow}>
                 <Text className="text-white font-bold">Verificar agora</Text>
               </TouchableOpacity>
             </View>
@@ -106,7 +120,6 @@ export default function Home() {
         </View>
 
         <View className="flex-row justify-between items-center mt-6 w-full">
-          {/* Esquerda */}
           <View className="flex-row items-center">
             <View className="w-16 h-16 bg-background rounded-full items-center justify-center">
               <Coffee size={30} color="#FFFFFF" />

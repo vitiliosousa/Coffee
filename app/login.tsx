@@ -37,7 +37,7 @@ export default function Login() {
       });
       Alert.alert("Sucesso", `Bem-vindo, ${response.data.user.name}!`);
 
-      router.replace("/home");
+      router.replace("/home?fromLogin=true");
     } catch (error: any) {
       Alert.alert("Erro no login", error.message || "Não foi possível logar");
     } finally {
