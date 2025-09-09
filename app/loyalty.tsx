@@ -85,7 +85,7 @@ export default function Loyalty() {
   };
 
   const renderCampaignCard = (campaign: Campaign) => (
-    <View key={campaign.id} className="bg-fundo border rounded-2xl p-6 flex-1 gap-2 mb-4">
+    <View key={campaign.id} className="bg-[#FFF9EC] border border-gray-300 rounded-2xl p-6 flex-1 gap-2 mb-4">
       <View className="flex-row items-center justify-between">
         <Text className="text-xl font-bold flex-1 pr-2">
           {campaign.title}
@@ -126,10 +126,10 @@ export default function Loyalty() {
       {/* CONTEÚDO SCROLLÁVEL */}
       <ScrollView className="flex-1">
         {/* Seção de Pontos */}
-        <View className="bg-fundo p-6">
+        <View className="bg-[#FFF9EC] p-6">
           <View className="flex-1 items-center gap-2 justify-center shadow-xl bg-white rounded-2xl p-6">
-            <View className="bg-orange-100 rounded-full p-5">
-              <Star size={40} color="#facc15" />
+            <View className="bg-[#FEF3C7] rounded-full p-5">
+              <Star size={40} color="#D97706" />
             </View>
             <Text className="text-3xl font-bold text-black mt-4">
               Seus Pontos

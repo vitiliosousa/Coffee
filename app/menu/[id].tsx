@@ -157,7 +157,7 @@ export default function MenuDetails() {
 
       <View className="border-t border-gray-200 p-6 bg-white">
         <TouchableOpacity
-          onPress={() => router.push("/home")}
+          onPress={() => router.push("/cart")}
           className="w-full h-14 rounded-full bg-background items-center justify-center shadow-md"
         >
           <Text className="text-white font-bold text-lg">

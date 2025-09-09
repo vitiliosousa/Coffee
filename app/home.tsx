@@ -174,7 +174,7 @@ export default function Home() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => router.push("/reservation")}
+            onPress={() => router.push("/menu")}
             className="flex-row gap-4 bg-white p-5 rounded-2xl"
           >
             <View className="bg-background rounded-xl p-5 items-center justify-center">
