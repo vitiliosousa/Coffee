@@ -53,10 +53,6 @@ export default function CreateAccount() {
 
   return (
     <ScrollView className="flex-1 bg-fundo p-6">
-      <View className="items-center">
-        <Dots />
-      </View>
-
       <View className="flex-row items-center mt-12">
         <View className="w-16 h-16 bg-fundoescuro rounded-2xl items-center justify-center">
           <Coffee size={30} color="#503B36" />

@@ -9,7 +9,6 @@ import {
 } from "react-native";
 import { useRouter, Link } from "expo-router";
 import { Coffee, Eye, EyeOff } from "lucide-react-native";
-import Dots from "@/components/Dots";
 import { useState } from "react";
 import { authService } from "@/services/auth.service";
 
@@ -47,10 +46,6 @@ export default function Login() {
 
   return (
     <ScrollView className="flex-1 bg-fundo p-6">
-      <View className="items-center">
-        <Dots />
-      </View>
-
       <View className="flex-row items-center mt-12">
         <View className="w-16 h-16 bg-fundoescuro rounded-2xl items-center justify-center">
           <Coffee size={30} color="#503B36" />
@@ -110,10 +105,12 @@ export default function Login() {
           </View>
 
           <TouchableOpacity
-            onPress={() => router.push("/terms-conditions")}
+            onPress={() => router.push("/recover-password")}
             className="self-end mt-2"
           >
-            <Text className="text-background text-sm">Esqueceu a password?</Text>
+            <Text className="text-background text-sm">
+              Esqueceu a password?
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -135,16 +132,16 @@ export default function Login() {
       >
         <Text className="text-black font-semibold">
           Não possui uma conta?{" "}
-          <Text className="text-background">Crie uma</Text>
+          <Text className="text-background">Criar</Text>
         </Text>
       </TouchableOpacity>
 
       <Text className="text-gray-500 text-sm text-center mt-10 mb-6">
-        Ao entrar, voce concorda com os {" "}
+        Ao entrar, voce concorda com os{" "}
         <Link className="text-background underline" href="/terms-conditions">
           Termos & Condições
         </Link>{" "}
-        e as {" "}
+        e as{" "}
         <Link className="text-background underline" href="/terms-conditions">
           Politicas de Privacidade
         </Link>

@@ -47,9 +47,6 @@ export default function History() {
     <View className="flex-1 bg-white">
       {/* Header */}
       <View className="bg-background p-6 gap-6">
-        <View className="items-center">
-          <DotsWhite />
-        </View>
         <View className="flex-row gap-4 items-center">
           <Link href={"/wallet"}>
             <ChevronLeft size={24} color={"#FFFFFF"} />

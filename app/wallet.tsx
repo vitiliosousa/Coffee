@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from "react-native";
 import { useRouter, Link } from "expo-router";
 import { ChevronLeft, CreditCard, Plus, RotateCcw, Banknote, Smartphone } from "lucide-react-native";
-import DotsWhite from "@/components/DotsWhite";
 import { authService, AccountInfoResponse, WalletTransactionsResponse, Transaction } from "@/services/auth.service";
 
 export default function Wallet() {
@@ -48,9 +47,6 @@ export default function Wallet() {
     <View className="flex-1 bg-white">
       {/* Cabeçalho */}
       <View className="bg-background p-6 gap-6">
-        <View className="items-center">
-          <DotsWhite />
-        </View>
         <View className="flex-row gap-4 items-center">
           <Link href={"/home"}>
             <ChevronLeft size={24} color={"#FFFFFF"} />

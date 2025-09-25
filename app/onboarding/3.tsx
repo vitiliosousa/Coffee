@@ -1,7 +1,6 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { ChevronRight, Smartphone } from "lucide-react-native";
-import Dots from "@/components/Dots";
 
 export default function Onboarding3() {
   const router = useRouter();
@@ -10,11 +9,6 @@ export default function Onboarding3() {
     <View className="flex-1 bg-white p-6">
       <View className="flex-row items-center">
         <View className="flex-1" />
-        <View className="flex-1 items-center">
-          <View className="items-center">
-            <Dots />
-          </View>
-        </View>
         <View className="flex-1 items-end">
           <Link href="/login" className="text-gray-400">
             Pular

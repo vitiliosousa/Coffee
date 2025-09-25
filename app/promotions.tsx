@@ -10,7 +10,6 @@ import {
 import { useState, useEffect } from "react";
 import { useRouter, Link } from "expo-router";
 import { ChevronLeft, Calendar, Gift } from "lucide-react-native";
-import DotsWhite from "@/components/DotsWhite";
 import { adminService } from "@/services/admin.service";
 
 interface Campaign {
@@ -139,9 +138,6 @@ export default function Promotions() {
     <View className="flex-1 bg-white">
       {/* HEADER FIXO */}
       <View className="bg-background p-6 gap-6">
-        <View className="items-center">
-          <DotsWhite />
-        </View>
         <View className="flex-row gap-4 items-center">
           <Link href={"/home"}>
             <ChevronLeft size={24} color={"#FFFFFF"} />

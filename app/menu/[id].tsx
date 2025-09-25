@@ -6,20 +6,21 @@ import {
   ScrollView,
   Image,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { ChevronLeft, Minus, Plus } from "lucide-react-native";
-import DotsWhite from "@/components/DotsWhite";
 import { adminService, Product, Variant } from "@/services/admin.service";
+import { useCart } from "@/contexts/CartContext";
 
 export default function MenuDetails() {
   const router = useRouter();
-  const { id } = useLocalSearchParams(); // id do produto
+  const { id } = useLocalSearchParams();
+  const { addItem } = useCart();
+  
   const [product, setProduct] = useState<Product | null>(null);
   const [variants, setVariants] = useState<Variant[]>([]);
-  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(
-    null
-  );
+  const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(true);
 
@@ -33,11 +34,15 @@ export default function MenuDetails() {
         setProduct(productResponse.data.product);
 
         const variantsResponse = await adminService.listVariants(id as string);
-        setVariants(
-          Array.isArray(variantsResponse.data.variants)
-            ? variantsResponse.data.variants
-            : []
-        );
+        const variantsData = Array.isArray(variantsResponse.data.variants)
+          ? variantsResponse.data.variants
+          : [];
+        setVariants(variantsData);
+        
+        // Seleciona a primeira variante por padrão se houver variantes
+        if (variantsData.length > 0) {
+          setSelectedVariantId(variantsData[0].id);
+        }
       } catch (error) {
         console.error("Erro ao buscar produto ou variantes:", error);
       } finally {
@@ -48,11 +53,51 @@ export default function MenuDetails() {
     fetchProductAndVariants();
   }, [id]);
 
+  const getSelectedVariant = () => {
+    return variants.find((v) => v.id === selectedVariantId);
+  };
+
   const getFinalPrice = () => {
     if (!product) return 0;
-    const variantPrice =
-      variants.find((v) => v.id === selectedVariantId)?.price_adjustment || 0;
-    return ((product.price as number) + variantPrice) * quantity;
+    const variantPrice = getSelectedVariant()?.price_adjustment || 0;
+    return (product.price as number) + variantPrice;
+  };
+
+  const handleAddToCart = () => {
+    if (!product) return;
+
+    const selectedVariant = getSelectedVariant();
+    const finalPrice = getFinalPrice();
+
+    const cartItem = {
+      productId: product.id,
+      name: product.name,
+      description: product.description || 'Sem descrição',
+      image_url: product.image_url || 'https://via.placeholder.com/300',
+      basePrice: product.price as number,
+      variantId: selectedVariant?.id,
+      variantName: selectedVariant?.name,
+      variantPriceAdjustment: selectedVariant?.price_adjustment || 0,
+      quantity,
+      finalPrice,
+    };
+
+    addItem(cartItem);
+    
+    Alert.alert(
+      "Sucesso!",
+      `${product.name} foi adicionado ao carrinho`,
+      [
+        {
+          text: "Continuar comprando",
+          style: "cancel",
+        },
+        {
+          text: "Ver carrinho",
+          onPress: () => router.push("/cart"),
+        },
+      ]
+    );
   };
 
   if (loading) {
@@ -75,9 +120,6 @@ export default function MenuDetails() {
     <View className="flex-1 bg-white">
       {/* Top Header */}
       <View className="bg-background p-6 gap-6">
-        <View className="items-center">
-          <DotsWhite />
-        </View>
         <View className="flex-row gap-4 items-center">
           <TouchableOpacity onPress={() => router.back()}>
             <ChevronLeft size={24} color="#FFFFFF" />
@@ -122,14 +164,19 @@ export default function MenuDetails() {
                   }`}
                 >
                   <Text
-                    className={`text-lg ${selectedVariantId === variant.id ? "text-white" : "text-gray-700"}`}
+                    className={`text-lg ${
+                      selectedVariantId === variant.id ? "text-white" : "text-gray-700"
+                    }`}
                   >
                     {variant.name}
                   </Text>
                   <Text
-                    className={`text-lg font-bold ${selectedVariantId === variant.id ? "text-white" : "text-gray-700"}`}
+                    className={`text-lg font-bold ${
+                      selectedVariantId === variant.id ? "text-white" : "text-gray-700"
+                    }`}
                   >
-                    ${variant.price_adjustment.toFixed(2)}
+                    {variant.price_adjustment >= 0 ? "+" : ""}$
+                    {variant.price_adjustment.toFixed(2)}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -157,11 +204,11 @@ export default function MenuDetails() {
 
       <View className="border-t border-gray-200 p-6 bg-white">
         <TouchableOpacity
-          onPress={() => router.push("/cart")}
+          onPress={handleAddToCart}
           className="w-full h-14 rounded-full bg-background items-center justify-center shadow-md"
         >
           <Text className="text-white font-bold text-lg">
-            Adicionar ao carrinho
+            Adicionar ao carrinho - ${(getFinalPrice() * quantity).toFixed(2)}
           </Text>
         </TouchableOpacity>
       </View>

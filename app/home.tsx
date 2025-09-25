@@ -111,11 +111,6 @@ export default function Home() {
       <View className="bg-fundo px-6 pt-6 pb-4">
         <View className="flex-row items-center">
           <View className="flex-1" />
-          <View className="flex-1 items-center">
-            <View className="items-center">
-              <Dots />
-            </View>
-          </View>
           <View className="flex-1 items-end">
             <Link href="/create-account" className="text-gray-400">
               <Bell size={20} color="#503B36" />

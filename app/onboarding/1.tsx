@@ -1,7 +1,6 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { Coffee, ChevronRight } from "lucide-react-native";
-import Dots from "@/components/Dots";
 
 export default function Onboarding1() {
   const router = useRouter();
@@ -10,11 +9,6 @@ export default function Onboarding1() {
     <View className="flex-1 bg-white p-6">
       <View className="flex-row items-center">
         <View className="flex-1" />
-        <View className="flex-1 items-center">
-          <View className="items-center">
-            <Dots />
-          </View>
-        </View>
         <View className="flex-1 items-end">
           <Link href="/login" className="text-gray-400">
             Pular
@@ -29,8 +23,8 @@ export default function Onboarding1() {
           Bem vindo ao Coffee Buzz
         </Text>
         <Text className="text-center text-xl text-gray-600 px-4">
-          Descubra as melhores misturas de café e os doces artesanais. A sua experiência
-          perfeita começa aqui.
+          Descubra as melhores misturas de café e os doces artesanais. A sua
+          experiência perfeita começa aqui.
         </Text>
         <View className="flex-row gap-3 mt-8">
           <View className="w-10 h-3 rounded-full bg-orange-500" />

@@ -6,8 +6,6 @@ import {
 } from "react-native";
 import { useRouter, Link } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
-import DotsWhite from "@/components/DotsWhite";
-
 export default function TermsConditions() {
   const router = useRouter();
 
@@ -15,9 +13,6 @@ export default function TermsConditions() {
     <View className="flex-1 bg-white">
       {/* HEADER FIXO */}
       <View className="bg-background p-6 gap-6">
-        <View className="items-center">
-          <DotsWhite />
-        </View>
         <View className="flex-row gap-4 items-center">
           <Link href={"/create-account"}>
             <ChevronLeft size={24} color={"#FFFFFF"} />
@@ -70,7 +65,7 @@ export default function TermsConditions() {
       <View className="border-t border-gray-200 p-6 bg-white">
         <View className="items-end">
           <TouchableOpacity
-            onPress={() => router.push("/home")}
+            onPress={() => router.push("/login")}
             className="w-full h-14 rounded-full bg-background items-center justify-center shadow-md"
           >
             <Text className="text-white font-bold text-lg">Aceitar e Continuar</Text>

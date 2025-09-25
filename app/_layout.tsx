@@ -1,13 +1,16 @@
 import { Stack } from "expo-router";
 import "./global.css";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
+import { CartProvider } from "@/contexts/CartContext";
 
 export default function RootLayout() {
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right"]}>
-        <Stack screenOptions={{ headerShown: false }} />
-      </SafeAreaView>
-    </SafeAreaProvider>
+    <CartProvider>
+      <SafeAreaProvider>
+        <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right"]}>
+          <Stack screenOptions={{ headerShown: false }} />
+        </SafeAreaView>
+      </SafeAreaProvider>
+    </CartProvider>
   );
 }
