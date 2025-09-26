@@ -9,7 +9,6 @@ import {
 import { useState, useEffect } from "react";
 import { Link, useRouter } from "expo-router";
 import { ChevronLeft, Calendar, Clock, Users, X } from "lucide-react-native";
-import DotsWhite from "@/components/DotsWhite";
 import { reservationService } from "@/services/reservation.service";
 
 interface Reservation {
@@ -201,9 +200,6 @@ export default function MyReservation() {
       <View className="flex-1 bg-white">
         {/* HEADER FIXO */}
         <View className="bg-background p-6 gap-6">
-          <View className="items-center">
-            <DotsWhite />
-          </View>
           <View className="flex-row gap-4 items-center">
             <Link href={"/home"}>
               <ChevronLeft size={24} color={"#FFFFFF"} />
@@ -224,9 +220,6 @@ export default function MyReservation() {
     <View className="flex-1 bg-white">
       {/* HEADER FIXO */}
       <View className="bg-background p-6 gap-6">
-        <View className="items-center">
-          <DotsWhite />
-        </View>
         <View className="flex-row gap-4 items-center">
           <Link href={"/home"}>
             <ChevronLeft size={24} color={"#FFFFFF"} />

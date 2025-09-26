@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   Image,
   Modal,
   Alert,
+  Dimensions,
 } from "react-native";
 import { useRouter, Link, useLocalSearchParams } from "expo-router";
 import {
@@ -22,46 +23,96 @@ import {
 } from "lucide-react-native";
 import Dots from "@/components/Dots";
 import { authService, AccountInfoResponse } from "@/services/auth.service";
+import { adminService } from "@/services/admin.service";
+
+const { width: screenWidth } = Dimensions.get('window');
+
+interface Campaign {
+  id: string;
+  title: string;
+  type: string;
+  description: string;
+  start_date: string;
+  end_date: string;
+  image_url: string;
+  send_notification: boolean;
+  channels: string[];
+  created_at: string;
+  updated_at: string;
+}
 
 export default function Home() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const scrollViewRef = useRef<ScrollView>(null);
   const [accountInfo, setAccountInfo] = useState<
     AccountInfoResponse["data"]["account"] | null
   >(null);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [currentSlide, setCurrentSlide] = useState(0);
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchAccountInfo = async () => {
+    const fetchData = async () => {
       try {
-        const response = await authService.getAccountInfo();
-        setAccountInfo(response.data.account);
+        // Buscar informações da conta
+        const accountResponse = await authService.getAccountInfo();
+        setAccountInfo(accountResponse.data.account);
 
-        // Verifica se veio de um login (parâmetro fromLogin = true)
-        // E se a conta não está verificada
+        // Buscar promoções
+        const promotionsResponse = await adminService.getActiveCampaigns();
+        if (promotionsResponse.data?.data) {
+          const appPromotions = promotionsResponse.data.data.filter(campaign => 
+            campaign.channels.includes("app")
+          );
+          setCampaigns(appPromotions);
+        }
+
+        // Verifica se veio de um login e se a conta não está verificada
         if (
-          response.data.account.status !== "active" &&
+          accountResponse.data.account.status !== "active" &&
           params.fromLogin === "true"
         ) {
           setShowVerificationModal(true);
-
-          // Remove o parâmetro da URL para não mostrar novamente
           router.replace("/home");
         }
       } catch (error: any) {
-        console.error("Erro ao buscar info da conta:", error.message);
+        console.error("Erro ao buscar dados:", error.message);
         Alert.alert(
           "Erro",
-          "Não foi possível carregar as informações da conta"
+          "Não foi possível carregar as informações"
         );
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAccountInfo();
+    fetchData();
   }, [params.fromLogin]);
+
+  // Auto-scroll das promoções
+  useEffect(() => {
+    if (campaigns.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentSlide((prev) => {
+          const nextSlide = prev + 1;
+          if (nextSlide >= campaigns.length) {
+            scrollViewRef.current?.scrollTo({ x: 0, animated: true });
+            return 0;
+          } else {
+            scrollViewRef.current?.scrollTo({ 
+              x: nextSlide * (screenWidth - 48), 
+              animated: true 
+            });
+            return nextSlide;
+          }
+        });
+      }, 4000);
+
+      return () => clearInterval(interval);
+    }
+  }, [campaigns.length]);
 
   const handleVerifyNow = () => {
     setShowVerificationModal(false);
@@ -70,6 +121,45 @@ export default function Home() {
 
   const handleContinueWithoutVerification = () => {
     setShowVerificationModal(false);
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR');
+  };
+
+  const handlePromotionPress = () => {
+    router.push("/promotions");
+  };
+
+  const renderPromotionSlide = (campaign: Campaign, index: number) => (
+    <View
+      key={campaign.id}
+      style={{ width: screenWidth - 48 }}
+      className="bg-background p-8 rounded-2xl gap-4 mr-4"
+    >
+      <Text className="text-white font-bold text-2xl">
+        ☕ {campaign.title}
+      </Text>
+      <Text className="text-gray-300 text-xl">
+        {campaign.description}
+      </Text>
+      <TouchableOpacity
+        className="h-14 w-32 justify-center items-center rounded-xl bg-white"
+        onPress={handlePromotionPress}
+      >
+        <Text className="text-background font-bold text-lg">
+          Ver Ofertas
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  const defaultPromotion = {
+    id: 'default',
+    title: 'Especial do Dia',
+    description: 'Compre qualquer café grande + ganhe um croissant grátis 🥐',
+    end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
   };
 
   if (loading) {
@@ -210,21 +300,59 @@ export default function Home() {
             </TouchableOpacity>
           </View>
 
-          <View className="bg-background p-8 rounded-2xl gap-4">
-            <Text className="text-white font-bold text-2xl">
-              ☕ Especial do Dia
-            </Text>
-            <Text className="text-gray-300 text-xl">
-              Compre qualquer café grande + ganhe um croissant grátis 🥐
-            </Text>
-            <TouchableOpacity
-              onPress={() => router.push("/promotions")}
-              className="h-14 w-32 justify-center items-center rounded-xl bg-white"
+          {/* Slide de Promoções */}
+          <View>
+            <ScrollView
+              ref={scrollViewRef}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onMomentumScrollEnd={(event) => {
+                const slideIndex = Math.round(
+                  event.nativeEvent.contentOffset.x / (screenWidth - 48)
+                );
+                setCurrentSlide(slideIndex);
+              }}
             >
-              <Text className="text-background font-bold text-lg">
-                Ver Oferta
-              </Text>
-            </TouchableOpacity>
+              {campaigns.length > 0 ? (
+                campaigns.map((campaign, index) => renderPromotionSlide(campaign, index))
+              ) : (
+                <TouchableOpacity
+                  style={{ width: screenWidth - 48 }}
+                  className="bg-background p-8 rounded-2xl gap-4"
+                  onPress={handlePromotionPress}
+                >
+                  <Text className="text-white font-bold text-2xl">
+                    ☕ {defaultPromotion.title}
+                  </Text>
+                  <Text className="text-gray-300 text-xl">
+                    {defaultPromotion.description}
+                  </Text>
+                  <TouchableOpacity
+                    className="h-14 w-32 justify-center items-center rounded-xl bg-white"
+                    onPress={handlePromotionPress}
+                  >
+                    <Text className="text-background font-bold text-lg">
+                      Ver Ofertas
+                    </Text>
+                  </TouchableOpacity>
+                </TouchableOpacity>
+              )}
+            </ScrollView>
+
+            {/* Indicadores de slide */}
+            {campaigns.length > 1 && (
+              <View className="flex-row justify-center mt-4 gap-2">
+                {campaigns.map((_, index) => (
+                  <View
+                    key={index}
+                    className={`w-2 h-2 rounded-full ${
+                      index === currentSlide ? 'bg-background' : 'bg-gray-300'
+                    }`}
+                  />
+                ))}
+              </View>
+            )}
           </View>
         </View>
 

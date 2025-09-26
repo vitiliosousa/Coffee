@@ -28,6 +28,7 @@ export default function Cart() {
   
   const [selectedOrderType, setSelectedOrderType] = useState<OrderType>('dine-in');
   const [selectedTable, setSelectedTable] = useState<number | null>(null);
+  const [deliveryAddress, setDeliveryAddress] = useState('');
   const [promoCode, setPromoCode] = useState('');
 
   const handleRemoveItem = (itemId: string, itemName: string) => {
@@ -49,6 +50,11 @@ export default function Cart() {
 
     if (selectedOrderType === 'dine-in' && selectedTable === null) {
       Alert.alert("Mesa não selecionada", "Por favor, selecione uma mesa.");
+      return;
+    }
+
+    if (selectedOrderType === 'delivery' && deliveryAddress.trim() === '') {
+      Alert.alert("Endereço necessário", "Por favor, insira o endereço de entrega.");
       return;
     }
 
@@ -160,6 +166,24 @@ export default function Cart() {
           </View>
         )}
 
+        {selectedOrderType === 'delivery' && (
+          <View className="bg-blue-50 p-6">
+            <Text className="text-lg font-semibold mb-4">Endereço de Entrega</Text>
+            <TextInput
+              value={deliveryAddress}
+              onChangeText={setDeliveryAddress}
+              placeholder="Insira seu endereço de entrega"
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
+              className="border border-gray-300 bg-white rounded-lg p-4 text-base mb-2"
+            />
+            <Text className="text-sm text-gray-600">
+              Inclua rua, número, bairro e pontos de referência
+            </Text>
+          </View>
+        )}
+
         {/* Lista de itens do carrinho */}
         <View className="p-6">
           <Text className="text-lg font-semibold mb-4">Seus itens</Text>
@@ -232,6 +256,12 @@ export default function Cart() {
             <Text>Taxas</Text>
             <Text>${getTaxes().toFixed(2)}</Text>
           </View>
+          {selectedOrderType === 'delivery' && (
+            <View className="flex-row justify-between">
+              <Text>Taxa de Entrega</Text>
+              <Text>$2.50</Text>
+            </View>
+          )}
           <View className="flex-row justify-between">
             <Text>Desconto</Text>
             <Text>-${getDiscount().toFixed(2)}</Text>
@@ -239,7 +269,12 @@ export default function Cart() {
           <View className="w-full border border-gray-300"></View>
           <View className="flex-row justify-between">
             <Text className="text-xl font-bold">Total</Text>
-            <Text className="text-xl font-bold">${getTotal().toFixed(2)}</Text>
+            <Text className="text-xl font-bold">
+              ${selectedOrderType === 'delivery' 
+                ? (getTotal() + 2.50).toFixed(2) 
+                : getTotal().toFixed(2)
+              }
+            </Text>
           </View>
         </View>
       </ScrollView>
@@ -252,7 +287,11 @@ export default function Cart() {
             className="w-full h-14 rounded-full bg-background items-center justify-center shadow-md"
           >
             <Text className="text-white font-bold text-lg">
-              Proceed to Payment - ${getTotal().toFixed(2)}
+              Proceed to Payment - $
+              {selectedOrderType === 'delivery' 
+                ? (getTotal() + 2.50).toFixed(2) 
+                : getTotal().toFixed(2)
+              }
             </Text>
           </TouchableOpacity>
         </View>
