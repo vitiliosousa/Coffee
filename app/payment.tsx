@@ -1,4 +1,4 @@
-import { Link, useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import {
   ChevronLeft,
   Clock,
@@ -16,25 +16,56 @@ import {
   View,
   ActivityIndicator,
 } from "react-native";
-import { useCart } from "@/contexts/CartContext";
 import { authService, AccountInfoResponse } from "@/services/auth.service";
+import { 
+  orderService, 
+  CreateOrderRequest, 
+  OrderItemRequest, 
+  OrderType as ApiOrderType,
+  PaymentMethod as ApiPaymentMethod,
+  Terminal 
+} from "@/services/order.service";
 
 type PaymentMethod = 'balance' | 'mpesa' | 'card';
+type OrderType = 'dine-in' | 'drive-thru' | 'delivery';
+
+interface CartItem {
+  id: string;
+  productId: string;
+  productName: string;
+  productDescription: string;
+  productImage: string;
+  basePrice: number;
+  variantId?: string;
+  variantName?: string;
+  variantPriceAdjustment: number;
+  quantity: number;
+  finalPrice: number;
+}
 
 export default function Payment() {
   const router = useRouter();
-  const { getTotal, clearCart, items } = useCart();
+  const params = useLocalSearchParams();
 
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>('balance');
   const [processing, setProcessing] = useState(false);
   const [loading, setLoading] = useState(true);
-
   const [availableBalance, setAvailableBalance] = useState<number>(0);
 
-  const totalAmount = getTotal();
-  const hasSufficientBalance = availableBalance >= totalAmount;
+  // Dados vindos do Cart
+  const [orderData, setOrderData] = useState({
+    orderType: 'dine-in' as OrderType,
+    tableId: '',
+    deliveryAddress: '',
+    subtotal: 0,
+    taxes: 0,
+    discount: 0,
+    deliveryFee: 0,
+    total: 0,
+    items: [] as CartItem[]
+  });
 
-  // Buscar saldo real da API
+  // Buscar saldo da API
   useEffect(() => {
     const fetchBalance = async () => {
       try {
@@ -51,9 +82,64 @@ export default function Payment() {
     fetchBalance();
   }, []);
 
+  // Processar dados vindos do Cart
+  useEffect(() => {
+    if (params.orderType && params.itemCount) {
+      const itemCount = parseInt(params.itemCount as string) || 0;
+      const items: CartItem[] = [];
+
+      // Reconstruir itens do carrinho
+      for (let i = 0; i < itemCount; i++) {
+        // Verificar se todos os campos obrigatórios existem
+        if (!params[`item${i}_productId`] || !params[`item${i}_productName`]) {
+          console.warn(`Item ${i} está incompleto, pulando...`);
+          continue;
+        }
+
+        const item: CartItem = {
+          id: params[`item${i}_id`] as string || '',
+          productId: params[`item${i}_productId`] as string,
+          productName: params[`item${i}_productName`] as string,
+          productDescription: params[`item${i}_productDescription`] as string || '',
+          productImage: params[`item${i}_productImage`] as string || 'https://via.placeholder.com/80',
+          basePrice: parseFloat(params[`item${i}_basePrice`] as string) || 0,
+          variantId: (params[`item${i}_variantId`] as string) === '' ? undefined : (params[`item${i}_variantId`] as string),
+          variantName: (params[`item${i}_variantName`] as string) === '' ? undefined : (params[`item${i}_variantName`] as string),
+          variantPriceAdjustment: parseFloat(params[`item${i}_variantPriceAdjustment`] as string) || 0,
+          quantity: parseInt(params[`item${i}_quantity`] as string) || 1,
+          finalPrice: parseFloat(params[`item${i}_finalPrice`] as string) || 0,
+        };
+        items.push(item);
+      }
+
+      setOrderData({
+        orderType: params.orderType as OrderType,
+        tableId: params.tableId as string || '',
+        deliveryAddress: params.deliveryAddress as string || '',
+        subtotal: parseFloat(params.subtotal as string) || 0,
+        taxes: parseFloat(params.taxes as string) || 0,
+        discount: parseFloat(params.discount as string) || 0,
+        deliveryFee: parseFloat(params.deliveryFee as string) || 0,
+        total: parseFloat(params.total as string) || 0,
+        items
+      });
+    }
+  }, [params.orderType, params.itemCount]); // Dependências específicas
+
+  const hasSufficientBalance = availableBalance >= orderData.total;
+
+  const mapOrderType = (type: OrderType): ApiOrderType => {
+    switch (type) {
+      case 'dine-in': return ApiOrderType.DINE_IN;
+      case 'drive-thru': return ApiOrderType.DRIVE_THRU;
+      case 'delivery': return ApiOrderType.DELIVERY;
+      default: return ApiOrderType.DINE_IN;
+    }
+  };
+
   const handlePayment = async () => {
-    if (items.length === 0) {
-      Alert.alert("Erro", "Carrinho vazio!");
+    if (orderData.items.length === 0) {
+      Alert.alert("Erro", "Nenhum item no pedido!");
       return;
     }
 
@@ -64,23 +150,65 @@ export default function Payment() {
 
     setProcessing(true);
 
-    setTimeout(() => {
-      setProcessing(false);
+    try {
+      // Converter itens do carrinho para formato da API
+      const orderItems: OrderItemRequest[] = orderData.items.map(item => ({
+        product_id: item.productId,
+        variant_id: item.variantId || undefined, // Garante undefined ao invés de string vazia
+        quantity: item.quantity,
+        unit_price: item.finalPrice,
+        total_price: item.finalPrice * item.quantity
+      }));
 
-      Alert.alert(
-        "Pagamento realizado com sucesso!",
-        `Seu pedido no valor de $${totalAmount.toFixed(2)} foi processado com sucesso.`,
-        [
-          {
-            text: "OK",
-            onPress: () => {
-              clearCart();
-              router.push("/home");
-            }
+      // Preparar dados do pedido
+      const createOrderRequest: CreateOrderRequest = {
+        type: mapOrderType(orderData.orderType),
+        payment_method: ApiPaymentMethod.WALLET,
+        terminal: Terminal.APP,
+        table_id: orderData.tableId && orderData.tableId !== '' ? orderData.tableId : undefined,
+        delivery_address: orderData.deliveryAddress && orderData.deliveryAddress !== '' ? orderData.deliveryAddress : undefined,
+        items: orderItems
+      };
+
+      console.log("Enviando pedido:", JSON.stringify(createOrderRequest, null, 2));
+
+      // Criar pedido na API
+      const response = await orderService.createOrder(createOrderRequest);
+      
+      // Verificar sucesso (API pode retornar "success" ou "status")
+      const isSuccess = response.success === true || response.status === "success";
+      
+      if (isSuccess && response.data) {
+        console.log("Pedido criado com sucesso:", response.data.id);
+        
+        // Navegar para confirmação com dados do pedido
+        router.push({
+          pathname: "/order-confirmation",
+          params: {
+            orderId: response.data.id,
+            orderType: orderData.orderType,
+            tableId: orderData.tableId,
+            deliveryAddress: orderData.deliveryAddress,
+            total: orderData.total.toFixed(2),
+            itemCount: orderData.items.length.toString(),
+            paymentMethod: getPaymentMethodTitle(selectedPaymentMethod),
+            status: response.data.status,
+            createdAt: response.data.created_at
           }
-        ]
+        });
+      } else {
+        Alert.alert("Erro", response.message || "Falha ao criar pedido. Tente novamente.");
+      }
+
+    } catch (error: any) {
+      console.error("Erro ao criar pedido:", error);
+      Alert.alert(
+        "Erro no pagamento", 
+        error.message || "Não foi possível processar o pedido. Tente novamente."
       );
-    }, 2000);
+    } finally {
+      setProcessing(false);
+    }
   };
 
   const getPaymentMethodIcon = (method: PaymentMethod) => {
@@ -143,14 +271,48 @@ export default function Payment() {
           <View className="flex-row gap-4 items-center">
             <Clock size={24} />
             <View>
-              <Text className="text-xl font-semibold">Pedido</Text>
+              <Text className="text-xl font-semibold">Pedido ({orderData.items.length} itens)</Text>
               <Text className="text-lg">Aguardando pagamento</Text>
-              <Text className="text-sm">Estimativa: 15-20 minutos</Text>
+              <Text className="text-sm">
+                {orderData.orderType === 'dine-in' && orderData.tableId && `Mesa ${orderData.tableId}`}
+                {orderData.orderType === 'delivery' && 'Entrega'}
+                {orderData.orderType === 'drive-thru' && 'Drive-Thru'}
+              </Text>
             </View>
           </View>
           <Text className="text-2xl font-semibold text-background">
-            ${totalAmount.toFixed(2)}
+            ${orderData.total.toFixed(2)}
           </Text>
+        </View>
+
+        {/* Resumo dos valores */}
+        <View className="p-6 m-6 gap-2 bg-gray-50 rounded-xl">
+          <Text className="text-lg font-semibold mb-2">Resumo do Pedido</Text>
+          <View className="flex-row justify-between">
+            <Text>Subtotal</Text>
+            <Text>${orderData.subtotal.toFixed(2)}</Text>
+          </View>
+          <View className="flex-row justify-between">
+            <Text>Taxas</Text>
+            <Text>${orderData.taxes.toFixed(2)}</Text>
+          </View>
+          {orderData.deliveryFee > 0 && (
+            <View className="flex-row justify-between">
+              <Text>Taxa de Entrega</Text>
+              <Text>${orderData.deliveryFee.toFixed(2)}</Text>
+            </View>
+          )}
+          {orderData.discount > 0 && (
+            <View className="flex-row justify-between">
+              <Text>Desconto</Text>
+              <Text>-${orderData.discount.toFixed(2)}</Text>
+            </View>
+          )}
+          <View className="w-full border-t border-gray-300 my-2"></View>
+          <View className="flex-row justify-between">
+            <Text className="text-lg font-bold">Total</Text>
+            <Text className="text-lg font-bold">${orderData.total.toFixed(2)}</Text>
+          </View>
         </View>
 
         {/* Métodos de pagamento */}
@@ -192,19 +354,6 @@ export default function Payment() {
               </View>
             </TouchableOpacity>
           ))}
-
-          {/* Resumo final */}
-          <View className="mt-6 p-4 bg-gray-50 rounded-xl">
-            <View className="flex-row justify-between items-center">
-              <Text className="text-lg font-semibold">Total a pagar:</Text>
-              <Text className="text-2xl font-bold text-background">
-                ${totalAmount.toFixed(2)}
-              </Text>
-            </View>
-            <Text className="text-sm text-gray-600 mt-2">
-              Método: {getPaymentMethodTitle(selectedPaymentMethod)}
-            </Text>
-          </View>
         </View>
       </ScrollView>
 
@@ -220,7 +369,7 @@ export default function Payment() {
           }`}
         >
           <Text className="text-white font-bold text-lg">
-            {processing ? 'Processando...' : `Pagar ${totalAmount.toFixed(2)}`}
+            {processing ? 'Processando pedido...' : `Finalizar Pedido - $${orderData.total.toFixed(2)}`}
           </Text>
         </TouchableOpacity>
       </View>

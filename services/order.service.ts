@@ -6,7 +6,7 @@ const API_BASE_URL = "http://162.245.188.169:8045/api/v1";
 export enum OrderType {
   DRIVE_THRU = "drive_thru",
   DELIVERY = "delivery",
-  DINE_IN = "dine_in"
+  DINE_IN = "dine_in",
 }
 
 export enum OrderStatus {
@@ -16,23 +16,23 @@ export enum OrderStatus {
   OUT_FOR_DELIVERY = "out_for_delivery",
   DELIVERED = "delivered",
   CANCELLED = "cancelled",
-  COMPLETED = "completed"
+  COMPLETED = "completed",
 }
 
 export enum OrderState {
   ONGOING = "ongoing",
   CLOSED = "closed",
-  PAID = "paid"
+  PAID = "paid",
 }
 
 export enum PaymentMethod {
   WALLET = "wallet",
-  POS = "pos"
+  POS = "pos",
 }
 
 export enum Terminal {
   POS = "POS",
-  APP = "APP"
+  APP = "APP",
 }
 
 // Interfaces principais
@@ -135,7 +135,8 @@ export interface TransactionRequest {
 
 // Interfaces de Response
 export interface CreateOrderResponse {
-  success: boolean;
+  success?: boolean;
+  status?: string;
   message: string;
   data: {
     id: string;
@@ -256,22 +257,38 @@ class OrderService {
     });
 
     const data = await response.json();
-    if (!response.ok) throw data;
+    
+    if (!response.ok) {
+      throw new Error(data.message || "Erro ao processar requisição");
+    }
+    
     return data;
   }
 
   // 1️⃣ Criar pedido
   async createOrder(orderData: CreateOrderRequest): Promise<CreateOrderResponse> {
-    return this.makeAuthenticatedRequest<CreateOrderResponse>("/orders", {
+    // Limpar campos undefined antes de enviar
+    const cleanedData = {
+      ...orderData,
+      table_id: orderData.table_id || undefined,
+      delivery_address: orderData.delivery_address || undefined,
+      scheduled_time: orderData.scheduled_time || undefined,
+      items: orderData.items.map(item => ({
+        ...item,
+        variant_id: item.variant_id || undefined
+      }))
+    };
+
+    return this.makeAuthenticatedRequest<CreateOrderResponse>("/users/orders", {
       method: "POST",
-      body: JSON.stringify(orderData),
+      body: JSON.stringify(cleanedData),
     });
   }
 
   // 2️⃣ Buscar pedidos
   async searchOrders(filters: SearchOrdersRequest): Promise<SearchOrdersResponse> {
     const queryParams = new URLSearchParams();
-    
+
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
         queryParams.append(key, value.toString());
@@ -279,7 +296,7 @@ class OrderService {
     });
 
     const queryString = queryParams.toString();
-    const endpoint = queryString ? `/orders?${queryString}` : "/orders";
+    const endpoint = queryString ? `/users/orders?${queryString}` : "/users/orders";
 
     return this.makeAuthenticatedRequest<SearchOrdersResponse>(endpoint, {
       method: "GET",
@@ -289,7 +306,7 @@ class OrderService {
   // 3️⃣ Obter total do pedido
   async getOrderTotal(orderId: string): Promise<OrderTotalResponse> {
     return this.makeAuthenticatedRequest<OrderTotalResponse>(
-      `/orders/total/${orderId}`,
+      `/users/orders/total/${orderId}`,
       { method: "GET" }
     );
   }
@@ -297,7 +314,7 @@ class OrderService {
   // 4️⃣ Obter pedido por ID
   async getOrderById(orderId: string): Promise<OrderResponse> {
     return this.makeAuthenticatedRequest<OrderResponse>(
-      `/orders/${orderId}`,
+      `/users/orders/${orderId}`,
       { method: "GET" }
     );
   }
@@ -305,14 +322,14 @@ class OrderService {
   // 5️⃣ Obter itens do pedido
   async getOrderItems(orderId: string): Promise<OrderItemsResponse> {
     return this.makeAuthenticatedRequest<OrderItemsResponse>(
-      `/orders/${orderId}/items`,
+      `/users/orders/${orderId}/items`,
       { method: "GET" }
     );
   }
 
   // 6️⃣ Criar pedido em andamento
   async createOngoingOrder(orderData: CreateOrderRequest): Promise<CreateOrderResponse> {
-    return this.makeAuthenticatedRequest<CreateOrderResponse>("/orders/ongoing", {
+    return this.makeAuthenticatedRequest<CreateOrderResponse>("/users/orders/ongoing", {
       method: "POST",
       body: JSON.stringify(orderData),
     });
@@ -321,7 +338,7 @@ class OrderService {
   // 7️⃣ Adicionar item ao pedido em andamento
   async addItemToOrder(orderId: string, item: OrderItemRequest): Promise<AddItemResponse> {
     return this.makeAuthenticatedRequest<AddItemResponse>(
-      `/orders/${orderId}/items`,
+      `/users/orders/${orderId}/items`,
       {
         method: "POST",
         body: JSON.stringify(item),
@@ -332,14 +349,14 @@ class OrderService {
   // 8️⃣ Remover item do pedido em andamento
   async removeItemFromOrder(orderId: string, itemId: string): Promise<RemoveItemResponse> {
     return this.makeAuthenticatedRequest<RemoveItemResponse>(
-      `/orders/${orderId}/items/${itemId}/remove`,
+      `/users/orders/${orderId}/items/${itemId}/remove`,
       { method: "DELETE" }
     );
   }
 
   // 9️⃣ Atualizar status do pedido
   async updateOrderStatus(updateData: UpdateStatusRequest): Promise<UpdateStatusResponse> {
-    return this.makeAuthenticatedRequest<UpdateStatusResponse>("/orders/update-status", {
+    return this.makeAuthenticatedRequest<UpdateStatusResponse>("/users/orders/update-status", {
       method: "POST",
       body: JSON.stringify(updateData),
     });
@@ -347,7 +364,7 @@ class OrderService {
 
   // 🔟 Atualizar estado do pedido
   async updateOrderState(updateData: UpdateStateRequest): Promise<UpdateStateResponse> {
-    return this.makeAuthenticatedRequest<UpdateStateResponse>("/orders/update-state", {
+    return this.makeAuthenticatedRequest<UpdateStateResponse>("/users/orders/update-state", {
       method: "POST",
       body: JSON.stringify(updateData),
     });
@@ -356,7 +373,7 @@ class OrderService {
   // 1️⃣1️⃣ Realizar transação do pedido
   async performOrderTransaction(userId: string, orderId: string): Promise<TransactionResponse> {
     return this.makeAuthenticatedRequest<TransactionResponse>(
-      `/orders/perform-transaction/${userId}`,
+      `/users/orders/perform-transaction/${userId}`,
       {
         method: "POST",
         body: JSON.stringify({ order_id: orderId }),
@@ -367,7 +384,7 @@ class OrderService {
   // 1️⃣2️⃣ Obter QR Code do pedido
   async getOrderQRCode(orderId: string): Promise<QRCodeResponse> {
     return this.makeAuthenticatedRequest<QRCodeResponse>(
-      `/orders/${orderId}/qrcode`,
+      `/users/orders/${orderId}/qrcode`,
       { method: "GET" }
     );
   }
@@ -375,7 +392,7 @@ class OrderService {
   // 1️⃣3️⃣ Obter vendas mensais
   async getMonthlySales(): Promise<MonthlySalesResponse> {
     return this.makeAuthenticatedRequest<MonthlySalesResponse>(
-      "/orders/monthly-sales",
+      "/users/orders/monthly-sales",
       { method: "GET" }
     );
   }

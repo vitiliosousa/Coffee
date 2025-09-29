@@ -11,12 +11,10 @@ import {
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { ChevronLeft, Minus, Plus } from "lucide-react-native";
 import { adminService, Product, Variant } from "@/services/admin.service";
-import { useCart } from "@/contexts/CartContext";
 
 export default function MenuDetails() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
-  const { addItem } = useCart();
   
   const [product, setProduct] = useState<Product | null>(null);
   const [variants, setVariants] = useState<Variant[]>([]);
@@ -69,35 +67,32 @@ export default function MenuDetails() {
     const selectedVariant = getSelectedVariant();
     const finalPrice = getFinalPrice();
 
-    const cartItem = {
+    // Preparar dados do item para navegação
+    const cartData = {
+      // Dados do produto
       productId: product.id,
-      name: product.name,
-      description: product.description || 'Sem descrição',
-      image_url: product.image_url || 'https://via.placeholder.com/300',
-      basePrice: product.price as number,
-      variantId: selectedVariant?.id,
-      variantName: selectedVariant?.name,
-      variantPriceAdjustment: selectedVariant?.price_adjustment || 0,
-      quantity,
-      finalPrice,
+      productName: product.name,
+      productDescription: product.description || 'Sem descrição',
+      productImage: product.image_url || 'https://via.placeholder.com/300',
+      basePrice: (product.price as number).toString(),
+      
+      // Dados da variante (se houver) - enviar string vazia ao invés de undefined
+      variantId: selectedVariant?.id || '',
+      variantName: selectedVariant?.name || '',
+      variantPriceAdjustment: (selectedVariant?.price_adjustment || 0).toString(),
+      
+      // Dados do pedido
+      quantity: quantity.toString(),
+      finalPrice: finalPrice.toString(),
     };
 
-    addItem(cartItem);
-    
-    Alert.alert(
-      "Sucesso!",
-      `${product.name} foi adicionado ao carrinho`,
-      [
-        {
-          text: "Continuar comprando",
-          style: "cancel",
-        },
-        {
-          text: "Ver carrinho",
-          onPress: () => router.push("/cart"),
-        },
-      ]
-    );
+    console.log("Enviando para Cart:", cartData);
+
+    // Navegar para carrinho com os dados
+    router.push({
+      pathname: "/cart",
+      params: cartData
+    });
   };
 
   if (loading) {
@@ -208,7 +203,7 @@ export default function MenuDetails() {
           className="w-full h-14 rounded-full bg-background items-center justify-center shadow-md"
         >
           <Text className="text-white font-bold text-lg">
-            Adicionar ao carrinho - ${(getFinalPrice() * quantity).toFixed(2)}
+            Adicionar ao Carrinho - ${(getFinalPrice() * quantity).toFixed(2)}
           </Text>
         </TouchableOpacity>
       </View>

@@ -1,6 +1,6 @@
-import { Link, useRouter } from "expo-router";
-import { ChevronLeft, Clock, Truck, MapPin, X, Plus, Minus} from "lucide-react-native";
-import { useState } from "react";
+import { Link, useRouter, useLocalSearchParams } from "expo-router";
+import { ChevronLeft, Clock, Truck, MapPin, X, Plus, Minus } from "lucide-react-native";
+import { useState, useEffect } from "react";
 import {
   ScrollView,
   Text,
@@ -10,26 +10,84 @@ import {
   Image,
   Alert
 } from "react-native";
-import { useCart } from "@/contexts/CartContext";
 
 type OrderType = 'dine-in' | 'drive-thru' | 'delivery';
 
+interface CartItem {
+  id: string;
+  productId: string;
+  productName: string;
+  productDescription: string;
+  productImage: string;
+  basePrice: number;
+  variantId?: string;
+  variantName?: string;
+  variantPriceAdjustment: number;
+  quantity: number;
+  finalPrice: number;
+}
+
 export default function Cart() {
   const router = useRouter();
-  const { 
-    items, 
-    updateQuantity, 
-    removeItem, 
-    getSubtotal, 
-    getTaxes, 
-    getDiscount, 
-    getTotal 
-  } = useCart();
+  const params = useLocalSearchParams();
   
+  const [items, setItems] = useState<CartItem[]>([]);
   const [selectedOrderType, setSelectedOrderType] = useState<OrderType>('dine-in');
   const [selectedTable, setSelectedTable] = useState<number | null>(null);
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [promoCode, setPromoCode] = useState('');
+
+  // Carregar dados vindos do MenuDetails quando a tela for acessada
+  useEffect(() => {
+    if (params.productId && params.productName) {
+      const newItem: CartItem = {
+        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+        productId: params.productId as string,
+        productName: params.productName as string,
+        productDescription: (params.productDescription as string) || 'Sem descrição',
+        productImage: (params.productImage as string) || 'https://via.placeholder.com/80',
+        basePrice: parseFloat(params.basePrice as string) || 0,
+        variantId: (params.variantId as string) === '' ? undefined : (params.variantId as string),
+        variantName: (params.variantName as string) === '' ? undefined : (params.variantName as string),
+        variantPriceAdjustment: parseFloat(params.variantPriceAdjustment as string) || 0,
+        quantity: parseInt(params.quantity as string) || 1,
+        finalPrice: parseFloat(params.finalPrice as string) || 0,
+      };
+
+      // Verificar se item já existe no carrinho
+      setItems(prevItems => {
+        const existingItemIndex = prevItems.findIndex(
+          item => item.productId === newItem.productId && item.variantId === newItem.variantId
+        );
+
+        if (existingItemIndex >= 0) {
+          // Se existe, atualiza a quantidade
+          const updatedItems = [...prevItems];
+          updatedItems[existingItemIndex].quantity += newItem.quantity;
+          return updatedItems;
+        } else {
+          // Se não existe, adiciona novo item
+          return [...prevItems, newItem];
+        }
+      });
+    }
+  }, [params.productId, params.productName]); // Dependências específicas para evitar loops
+
+  const updateQuantity = (itemId: string, quantity: number) => {
+    if (quantity <= 0) {
+      removeItem(itemId);
+      return;
+    }
+    setItems(prevItems =>
+      prevItems.map(item =>
+        item.id === itemId ? { ...item, quantity } : item
+      )
+    );
+  };
+
+  const removeItem = (itemId: string) => {
+    setItems(prevItems => prevItems.filter(item => item.id !== itemId));
+  };
 
   const handleRemoveItem = (itemId: string, itemName: string) => {
     Alert.alert(
@@ -40,6 +98,22 @@ export default function Cart() {
         { text: "Remover", onPress: () => removeItem(itemId), style: "destructive" }
       ]
     );
+  };
+
+  const getSubtotal = () => {
+    return items.reduce((total, item) => total + (item.finalPrice * item.quantity), 0);
+  };
+
+  const getTaxes = () => {
+    return getSubtotal() * 0.15; // 15% de taxa
+  };
+
+  const getDiscount = () => {
+    return 0; // Por enquanto sem desconto
+  };
+
+  const getTotal = () => {
+    return getSubtotal() + getTaxes() - getDiscount();
   };
 
   const handleProceedToPayment = () => {
@@ -58,11 +132,58 @@ export default function Cart() {
       return;
     }
 
-    router.push("/payment");
+    // Preparar dados para enviar ao Payment
+    const deliveryFee = selectedOrderType === 'delivery' ? 2.50 : 0;
+    const finalTotal = getTotal() + deliveryFee;
+
+    // Serializar itens do carrinho para passar como parâmetros
+    const itemsData = items.map((item, index) => ({
+      [`item${index}_id`]: item.id,
+      [`item${index}_productId`]: item.productId,
+      [`item${index}_productName`]: item.productName,
+      [`item${index}_productDescription`]: item.productDescription,
+      [`item${index}_productImage`]: item.productImage,
+      [`item${index}_basePrice`]: item.basePrice.toString(),
+      [`item${index}_variantId`]: item.variantId || '',
+      [`item${index}_variantName`]: item.variantName || '',
+      [`item${index}_variantPriceAdjustment`]: item.variantPriceAdjustment.toString(),
+      [`item${index}_quantity`]: item.quantity.toString(),
+      [`item${index}_finalPrice`]: item.finalPrice.toString(),
+    })).reduce((acc, item) => ({ ...acc, ...item }), {});
+
+    const paymentData = {
+      // Dados do pedido
+      orderType: selectedOrderType,
+      tableId: selectedTable?.toString() || '',
+      deliveryAddress: deliveryAddress || '',
+      
+      // Dados financeiros (garantir que são strings válidas)
+      subtotal: getSubtotal().toFixed(2),
+      taxes: getTaxes().toFixed(2),
+      discount: getDiscount().toFixed(2),
+      deliveryFee: deliveryFee.toFixed(2),
+      total: finalTotal.toFixed(2),
+      
+      // Quantidade de itens (para reconstruir no payment)
+      itemCount: items.length.toString(),
+      
+      // Itens serializados
+      ...itemsData
+    };
+
+    console.log("Enviando para Payment:", {
+      orderType: paymentData.orderType,
+      itemCount: paymentData.itemCount,
+      total: paymentData.total
+    });
+
+    router.push({
+      pathname: "/payment",
+      params: paymentData
+    });
   };
 
   const applyPromoCode = () => {
-    // Implementar lógica de código promocional
     Alert.alert("Código promocional", "Funcionalidade em desenvolvimento");
   };
 
@@ -72,9 +193,9 @@ export default function Cart() {
         {/* HEADER FIXO */}
         <View className="bg-background p-6 gap-6">
           <View className="flex-row gap-4 items-center">
-            <Link href={"/home"}>
+            <TouchableOpacity onPress={() => router.back()}>
               <ChevronLeft size={24} color={"#FFFFFF"} />
-            </Link>
+            </TouchableOpacity>
             <Text className="text-white text-2xl font-bold">Carrinho</Text>
           </View>
         </View>
@@ -100,9 +221,9 @@ export default function Cart() {
       {/* HEADER FIXO */}
       <View className="bg-background p-6 gap-6">
         <View className="flex-row gap-4 items-center">
-          <Link href={"/home"}>
+          <TouchableOpacity onPress={() => router.back()}>
             <ChevronLeft size={24} color={"#FFFFFF"} />
-          </Link>
+          </TouchableOpacity>
           <Text className="text-white text-2xl font-bold">Carrinho ({items.length})</Text>
         </View>
       </View>
@@ -190,17 +311,17 @@ export default function Cart() {
           {items.map((item) => (
             <View key={item.id} className="mb-4 p-4 rounded-xl flex-row border items-center">
               <Image 
-                source={{ uri: item.image_url || "https://via.placeholder.com/80" }}
+                source={{ uri: item.productImage || "https://via.placeholder.com/80" }}
                 className="w-20 h-20 rounded-xl"
               />
               <View className="flex-1 p-2 gap-2">
                 <View className="flex-row justify-between">
-                  <Text className="text-xl font-semibold">{item.name}</Text>
-                  <TouchableOpacity onPress={() => handleRemoveItem(item.id, item.name)}>
+                  <Text className="text-xl font-semibold">{item.productName}</Text>
+                  <TouchableOpacity onPress={() => handleRemoveItem(item.id, item.productName)}>
                     <X size={20}/>
                   </TouchableOpacity>
                 </View>
-                <Text className="text-lg text-gray-600">{item.description}</Text>
+                <Text className="text-lg text-gray-600">{item.productDescription}</Text>
                 {item.variantName && (
                   <Text className="text-sm text-gray-500">Variante: {item.variantName}</Text>
                 )}
@@ -236,7 +357,7 @@ export default function Cart() {
             onChangeText={setPromoCode}
             placeholder="Insira o código promocional"
             keyboardType="default"
-            className="border w-3/4 bg-white border-fundoescuro rounded-lg px-4 text-lg"
+            className="border w-3/4 bg-white border-background rounded-lg px-4 text-lg"
           />
           <TouchableOpacity 
             onPress={applyPromoCode}
@@ -287,7 +408,7 @@ export default function Cart() {
             className="w-full h-14 rounded-full bg-background items-center justify-center shadow-md"
           >
             <Text className="text-white font-bold text-lg">
-              Proceed to Payment - $
+              Prosseguir para Pagamento - $
               {selectedOrderType === 'delivery' 
                 ? (getTotal() + 2.50).toFixed(2) 
                 : getTotal().toFixed(2)
