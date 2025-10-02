@@ -370,8 +370,12 @@ class OrderService {
     });
   }
 
-  // 1️⃣1️⃣ Realizar transação do pedido
-  async performOrderTransaction(userId: string, orderId: string): Promise<TransactionResponse> {
+  // 1️⃣1️⃣ Realizar transação do pedido via QR Code
+  async performOrderTransaction(orderId: string): Promise<TransactionResponse> {
+    // Buscar userId do token/storage
+    const account = await this.getAccountInfo();
+    const userId = account.data.account.id;
+    
     return this.makeAuthenticatedRequest<TransactionResponse>(
       `/users/orders/perform-transaction/${userId}`,
       {
@@ -379,6 +383,13 @@ class OrderService {
         body: JSON.stringify({ order_id: orderId }),
       }
     );
+  }
+
+  // Helper para obter informações da conta
+  private async getAccountInfo() {
+    return this.makeAuthenticatedRequest<any>("/users/account", {
+      method: "GET",
+    });
   }
 
   // 1️⃣2️⃣ Obter QR Code do pedido
