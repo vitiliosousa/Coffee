@@ -3,8 +3,6 @@ import {
   ChevronLeft,
   Clock,
   CreditCard,
-  Phone,
-  Banknote,
   CheckCircle
 } from "lucide-react-native";
 import { useState, useEffect } from "react";
@@ -26,8 +24,7 @@ import {
   Terminal 
 } from "@/services/order.service";
 
-type PaymentMethod = 'balance' | 'mpesa' | 'card';
-type OrderType = 'dine-in' | 'drive-thru' | 'delivery';
+type OrderType = 'drive-thru' | 'delivery';
 
 interface CartItem {
   id: string;
@@ -47,18 +44,16 @@ export default function Payment() {
   const router = useRouter();
   const params = useLocalSearchParams();
 
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>('balance');
+  const [selectedPaymentMethod] = useState<'balance'>('balance');
   const [processing, setProcessing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [availableBalance, setAvailableBalance] = useState<number>(0);
 
   // Dados vindos do Cart
   const [orderData, setOrderData] = useState({
-    orderType: 'dine-in' as OrderType,
-    tableId: '',
+    orderType: 'delivery' as OrderType,
     deliveryAddress: '',
     subtotal: 0,
-    taxes: 0,
     discount: 0,
     deliveryFee: 0,
     total: 0,
@@ -90,7 +85,6 @@ export default function Payment() {
 
       // Reconstruir itens do carrinho
       for (let i = 0; i < itemCount; i++) {
-        // Verificar se todos os campos obrigatórios existem
         if (!params[`item${i}_productId`] || !params[`item${i}_productName`]) {
           console.warn(`Item ${i} está incompleto, pulando...`);
           continue;
@@ -114,26 +108,23 @@ export default function Payment() {
 
       setOrderData({
         orderType: params.orderType as OrderType,
-        tableId: params.tableId as string || '',
         deliveryAddress: params.deliveryAddress as string || '',
         subtotal: parseFloat(params.subtotal as string) || 0,
-        taxes: parseFloat(params.taxes as string) || 0,
         discount: parseFloat(params.discount as string) || 0,
         deliveryFee: parseFloat(params.deliveryFee as string) || 0,
         total: parseFloat(params.total as string) || 0,
         items
       });
     }
-  }, [params.orderType, params.itemCount]); // Dependências específicas
+  }, [params.orderType, params.itemCount]);
 
   const hasSufficientBalance = availableBalance >= orderData.total;
 
   const mapOrderType = (type: OrderType): ApiOrderType => {
     switch (type) {
-      case 'dine-in': return ApiOrderType.DINE_IN;
       case 'drive-thru': return ApiOrderType.DRIVE_THRU;
       case 'delivery': return ApiOrderType.DELIVERY;
-      default: return ApiOrderType.DINE_IN;
+      default: return ApiOrderType.DELIVERY;
     }
   };
 
@@ -143,7 +134,7 @@ export default function Payment() {
       return;
     }
 
-    if (selectedPaymentMethod === 'balance' && !hasSufficientBalance) {
+    if (!hasSufficientBalance) {
       Alert.alert("Saldo insuficiente", "Você não tem saldo suficiente para este pedido.");
       return;
     }
@@ -154,7 +145,7 @@ export default function Payment() {
       // Converter itens do carrinho para formato da API
       const orderItems: OrderItemRequest[] = orderData.items.map(item => ({
         product_id: item.productId,
-        variant_id: item.variantId || undefined, // Garante undefined ao invés de string vazia
+        variant_id: item.variantId || undefined,
         quantity: item.quantity,
         unit_price: item.finalPrice,
         total_price: item.finalPrice * item.quantity
@@ -165,7 +156,6 @@ export default function Payment() {
         type: mapOrderType(orderData.orderType),
         payment_method: ApiPaymentMethod.WALLET,
         terminal: Terminal.APP,
-        table_id: orderData.tableId && orderData.tableId !== '' ? orderData.tableId : undefined,
         delivery_address: orderData.deliveryAddress && orderData.deliveryAddress !== '' ? orderData.deliveryAddress : undefined,
         items: orderItems
       };
@@ -175,7 +165,6 @@ export default function Payment() {
       // Criar pedido na API
       const response = await orderService.createOrder(createOrderRequest);
       
-      // Verificar sucesso (API pode retornar "success" ou "status")
       const isSuccess = response.success === true || response.status === "success";
       
       if (isSuccess && response.data) {
@@ -187,11 +176,10 @@ export default function Payment() {
           params: {
             orderId: response.data.id,
             orderType: orderData.orderType,
-            tableId: orderData.tableId,
             deliveryAddress: orderData.deliveryAddress,
             total: orderData.total.toFixed(2),
             itemCount: orderData.items.length.toString(),
-            paymentMethod: getPaymentMethodTitle(selectedPaymentMethod),
+            paymentMethod: "Saldo",
             status: response.data.status,
             createdAt: response.data.created_at
           }
@@ -208,39 +196,6 @@ export default function Payment() {
       );
     } finally {
       setProcessing(false);
-    }
-  };
-
-  const getPaymentMethodIcon = (method: PaymentMethod) => {
-    switch (method) {
-      case 'balance':
-        return <CreditCard size={24} />;
-      case 'mpesa':
-        return <Phone size={24} />;
-      case 'card':
-        return <Banknote size={24} />;
-    }
-  };
-
-  const getPaymentMethodTitle = (method: PaymentMethod) => {
-    switch (method) {
-      case 'balance':
-        return 'Saldo';
-      case 'mpesa':
-        return 'M-Pesa';
-      case 'card':
-        return 'Cartão Bancário';
-    }
-  };
-
-  const getPaymentMethodDescription = (method: PaymentMethod) => {
-    switch (method) {
-      case 'balance':
-        return `Disponível: $${availableBalance.toFixed(2)}`;
-      case 'mpesa':
-        return 'Transferência móvel';
-      case 'card':
-        return 'Crédito ou cartão de débito';
     }
   };
 
@@ -274,7 +229,6 @@ export default function Payment() {
               <Text className="text-xl font-semibold">Pedido ({orderData.items.length} itens)</Text>
               <Text className="text-lg">Aguardando pagamento</Text>
               <Text className="text-sm">
-                {orderData.orderType === 'dine-in' && orderData.tableId && `Mesa ${orderData.tableId}`}
                 {orderData.orderType === 'delivery' && 'Entrega'}
                 {orderData.orderType === 'drive-thru' && 'Drive-Thru'}
               </Text>
@@ -291,10 +245,6 @@ export default function Payment() {
           <View className="flex-row justify-between">
             <Text>Subtotal</Text>
             <Text>${orderData.subtotal.toFixed(2)}</Text>
-          </View>
-          <View className="flex-row justify-between">
-            <Text>Taxas</Text>
-            <Text>${orderData.taxes.toFixed(2)}</Text>
           </View>
           {orderData.deliveryFee > 0 && (
             <View className="flex-row justify-between">
@@ -315,45 +265,42 @@ export default function Payment() {
           </View>
         </View>
 
-        {/* Métodos de pagamento */}
+        {/* Método de pagamento (apenas saldo) */}
         <View className="flex-1 p-6 gap-4">
-          <Text className="font-bold text-2xl">Selecione o método de pagamento</Text>
+          <Text className="font-bold text-2xl">Método de Pagamento</Text>
 
-          {(['balance', 'mpesa', 'card'] as PaymentMethod[]).map((method) => (
-            <TouchableOpacity
-              key={method}
-              onPress={() => setSelectedPaymentMethod(method)}
-              className={`p-4 flex-row border rounded-xl items-center justify-between ${
-                selectedPaymentMethod === method ? 'border-background bg-background/10' : 'border-gray-300'
-              }`}
-            >
-              <View className="flex flex-row gap-4 items-center">
-                {getPaymentMethodIcon(method)}
-                <View>
-                  <Text className="font-semibold text-xl">{getPaymentMethodTitle(method)}</Text>
-                  <Text className="text-lg text-gray-600">{getPaymentMethodDescription(method)}</Text>
-                </View>
+          <View className="p-4 flex-row border border-background bg-background/10 rounded-xl items-center justify-between">
+            <View className="flex flex-row gap-4 items-center">
+              <CreditCard size={24} />
+              <View>
+                <Text className="font-semibold text-xl">Saldo da Carteira</Text>
+                <Text className="text-lg text-gray-600">
+                  Disponível: ${availableBalance.toFixed(2)}
+                </Text>
+              </View>
+            </View>
+
+            <View className="flex-row items-center gap-2">
+              <View className={`px-3 py-1 rounded-full ${
+                hasSufficientBalance ? 'bg-green-200' : 'bg-red-200'
+              }`}>
+                <Text className={`text-sm font-semibold ${
+                  hasSufficientBalance ? 'text-green-700' : 'text-red-700'
+                }`}>
+                  {hasSufficientBalance ? 'Suficiente' : 'Insuficiente'}
+                </Text>
               </View>
 
-              <View className="flex-row items-center gap-2">
-                {method === 'balance' && (
-                  <View className={`px-3 py-1 rounded-full ${
-                    hasSufficientBalance ? 'bg-green-200' : 'bg-red-200'
-                  }`}>
-                    <Text className={`text-sm font-semibold ${
-                      hasSufficientBalance ? 'text-green-700' : 'text-red-700'
-                    }`}>
-                      {hasSufficientBalance ? 'Suficiente' : 'Insuficiente'}
-                    </Text>
-                  </View>
-                )}
+              <CheckCircle size={20} color="#503B36" />
+            </View>
+          </View>
 
-                {selectedPaymentMethod === method && (
-                  <CheckCircle size={20} color="#503B36" />
-                )}
-              </View>
-            </TouchableOpacity>
-          ))}
+          {/* Aviso sobre método único */}
+          <View className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <Text className="text-blue-800 text-sm text-center">
+              💡 Atualmente aceitamos apenas pagamento com saldo da carteira
+            </Text>
+          </View>
         </View>
       </ScrollView>
 
@@ -361,9 +308,9 @@ export default function Payment() {
       <View className="border-t border-gray-200 p-6 bg-white">
         <TouchableOpacity
           onPress={handlePayment}
-          disabled={processing || (selectedPaymentMethod === 'balance' && !hasSufficientBalance)}
+          disabled={processing || !hasSufficientBalance}
           className={`w-full h-14 rounded-full items-center justify-center shadow-md ${
-            processing || (selectedPaymentMethod === 'balance' && !hasSufficientBalance)
+            processing || !hasSufficientBalance
               ? 'bg-gray-400'
               : 'bg-background'
           }`}

@@ -188,14 +188,6 @@ export default function OrderConfirmation() {
         {/* Botões de Ação */}
         <View className="gap-4">
           <TouchableOpacity
-            onPress={handleTrackOrder}
-            className="bg-background rounded-xl p-4 flex-row items-center justify-center gap-2"
-          >
-            <Receipt size={20} color="#FFFFFF" />
-            <Text className="text-white font-bold text-lg">Acompanhar Pedido</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
             onPress={handleViewOrderDetails}
             className="border border-background rounded-xl p-4 flex-row items-center justify-center gap-2"
           >

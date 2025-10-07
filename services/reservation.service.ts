@@ -11,6 +11,7 @@ export interface Reservation {
   status: string;
   created_at: string;
   updated_at: string;
+  check_in?: boolean; // Adicionado campo check_in
 }
 
 export interface AvailabilitySlot {
@@ -64,7 +65,7 @@ class ReservationService {
     return data;
   }
 
-  // 1️⃣ Criar reserva (sem table_id)
+  // 1️⃣ Criar reserva
   async createReservation(reservation: {
     date: string;
     start_time: string;
@@ -80,7 +81,7 @@ class ReservationService {
     );
   }
 
-  // 2️⃣ Listar horários disponíveis (agora recebe a data como query param)
+  // 2️⃣ Listar horários disponíveis
   async listAvailability(date: string): Promise<AvailabilityResponse> {
     return this.makeAuthenticatedRequest<AvailabilityResponse>(
       `/users/availability?date=${date}`,

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Modal } from "react-native";
 import { useRouter, Link } from "expo-router";
-import { ChevronLeft, CreditCard, Plus, RotateCcw, Banknote, Smartphone, QrCode } from "lucide-react-native";
+import { ChevronLeft, CreditCard, Plus, RotateCcw, Banknote, Smartphone, QrCode, Copy, X } from "lucide-react-native";
 import { authService, AccountInfoResponse, WalletTransactionsResponse, Transaction } from "@/services/auth.service";
 
 export default function Wallet() {
@@ -9,6 +9,9 @@ export default function Wallet() {
   const [loading, setLoading] = useState(true);
   const [accountInfo, setAccountInfo] = useState<AccountInfoResponse | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [showPaymentIdModal, setShowPaymentIdModal] = useState(false);
+  const [paymentId, setPaymentId] = useState("");
+  const [generatingId, setGeneratingId] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -32,6 +35,35 @@ export default function Wallet() {
     fetchData();
   }, []);
 
+  const generatePaymentId = async () => {
+    setGeneratingId(true);
+    try {
+      // Simular geração de ID de pagamento
+      // Substitua por sua lógica real de API
+      const newPaymentId = `PAY-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+      setPaymentId(newPaymentId);
+      
+      // Aqui você pode integrar com sua API real:
+      // const response = await paymentService.generatePaymentId();
+      // setPaymentId(response.data.payment_id);
+      
+    } catch (error: any) {
+      Alert.alert("Erro", "Não foi possível gerar o ID de pagamento");
+    } finally {
+      setGeneratingId(false);
+    }
+  };
+
+  const copyToClipboard = () => {
+    // Implementar lógica de copiar para área de transferência
+    Alert.alert("Copiado!", "ID de pagamento copiado para a área de transferência");
+  };
+
+  const handleGeneratePaymentId = () => {
+    setShowPaymentIdModal(true);
+    generatePaymentId();
+  };
+
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
@@ -45,6 +77,70 @@ export default function Wallet() {
 
   return (
     <View className="flex-1 bg-white">
+      {/* Modal do ID de Pagamento */}
+      <Modal
+        visible={showPaymentIdModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowPaymentIdModal(false)}
+      >
+        <View className="flex-1 justify-center items-center bg-black/50 p-6">
+          <View className="bg-white rounded-2xl w-full max-w-sm p-6">
+            {/* Header do Modal */}
+            <View className="flex-row justify-between items-center mb-4">
+              <Text className="text-xl font-bold text-background">ID de Pagamento</Text>
+              <TouchableOpacity 
+                onPress={() => setShowPaymentIdModal(false)}
+                className="p-2"
+              >
+                <X size={24} color="#6B7280" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Conteúdo do Modal */}
+            <View className="items-center gap-4">
+              <View className="bg-background/10 p-4 rounded-xl w-full">
+                <Text className="text-center text-sm text-gray-600 mb-2">
+                  Compartilhe este ID para receber pagamentos
+                </Text>
+                
+                {generatingId ? (
+                  <View className="py-4 items-center">
+                    <ActivityIndicator size="small" color="#503B36" />
+                    <Text className="text-gray-500 mt-2">Gerando ID...</Text>
+                  </View>
+                ) : (
+                  <View className="items-center gap-3">
+                    <Text className="text-2xl font-bold text-background text-center">
+                      {paymentId}
+                    </Text>
+                    
+                    <TouchableOpacity
+                      onPress={copyToClipboard}
+                      className="flex-row items-center gap-2 bg-background px-4 py-2 rounded-full"
+                    >
+                      <Copy size={16} color="#FFFFFF" />
+                      <Text className="text-white font-semibold">Copiar ID</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+
+              <Text className="text-center text-xs text-gray-500">
+                Este ID expira em 24 horas. Compartilhe com quem deseja receber o pagamento.
+              </Text>
+
+              <TouchableOpacity
+                onPress={() => setShowPaymentIdModal(false)}
+                className="w-full bg-gray-200 py-3 rounded-xl mt-2"
+              >
+                <Text className="text-center font-semibold text-gray-700">Fechar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* Cabeçalho */}
       <View className="bg-background p-6 gap-6">
         <View className="flex-row gap-4 items-center">
@@ -104,17 +200,32 @@ export default function Wallet() {
             </TouchableOpacity>
           </View>
 
-          {/* Segunda linha - Botão QR Code em destaque */}
-          <TouchableOpacity
-            onPress={() => router.push("/qrscanner")}
-            className="bg-gradient-to-r from-yellow-400 to-yellow-500 bg-yellow-400 rounded-xl p-5 flex-row items-center justify-center gap-3 border-2 border-yellow-500 shadow-lg"
-          >
-            <QrCode size={28} color="#503B36" strokeWidth={2.5} />
-            <View>
-              <Text className="text-background text-lg font-bold">Pagar com QR Code</Text>
-              <Text className="text-background/70 text-sm">Escaneie e pague instantaneamente</Text>
-            </View>
-          </TouchableOpacity>
+          {/* Segunda linha - Dois botões lado a lado */}
+          <View className="flex-row gap-4">
+            {/* Botão QR Code */}
+            <TouchableOpacity
+              onPress={() => router.push("/qrscanner")}
+              className="bg-gradient-to-r from-yellow-400 to-yellow-500 bg-yellow-400 rounded-xl p-4 flex-1 flex-row items-center justify-center gap-3 border-2 border-yellow-500 shadow-lg"
+            >
+              <QrCode size={24} color="#503B36" strokeWidth={2.5} />
+              <View className="flex-1">
+                <Text className="text-background font-bold text-base">Pagar com QR</Text>
+                <Text className="text-background/70 text-xs">Escaneie e pague</Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* Botão Gerar ID de Pagamento */}
+            <TouchableOpacity
+              onPress={handleGeneratePaymentId}
+              className="bg-gradient-to-r from-green-400 to-green-500 bg-green-400 rounded-xl p-4 flex-1 flex-row items-center justify-center gap-3 border-2 border-green-500 shadow-lg"
+            >
+              <Copy size={24} color="#FFFFFF" strokeWidth={2.5} />
+              <View className="flex-1">
+                <Text className="text-white font-bold text-base">Gerar ID</Text>
+                <Text className="text-white/80 text-xs">Receber pagamento</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Transações Recentes */}

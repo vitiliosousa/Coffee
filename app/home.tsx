@@ -1,31 +1,13 @@
 import { useEffect, useState, useRef } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  Image,
-  Modal,
-  Alert,
-  Dimensions,
+import {View,Text,TouchableOpacity,ScrollView,Image,Modal,Alert,Dimensions,
 } from "react-native";
 import { useRouter, Link, useLocalSearchParams } from "expo-router";
-import {
-  Calendar,
-  Car,
-  Coffee,
-  ArrowRight,
-  Wallet,
-  User,
-  Menu,
-  Star,
-  Bell,
+import {Calendar,Car,Coffee,ArrowRight,Wallet,User,Menu,Star,Bell,Tag,
 } from "lucide-react-native";
-import Dots from "@/components/Dots";
 import { authService, AccountInfoResponse } from "@/services/auth.service";
 import { adminService } from "@/services/admin.service";
 
-const { width: screenWidth } = Dimensions.get('window');
+const { width: screenWidth } = Dimensions.get("window");
 
 interface Campaign {
   id: string;
@@ -63,8 +45,8 @@ export default function Home() {
         // Buscar promoções
         const promotionsResponse = await adminService.getActiveCampaigns();
         if (promotionsResponse.data?.data) {
-          const appPromotions = promotionsResponse.data.data.filter(campaign => 
-            campaign.channels.includes("app")
+          const appPromotions = promotionsResponse.data.data.filter(
+            (campaign) => campaign.channels.includes("app")
           );
           setCampaigns(appPromotions);
         }
@@ -79,10 +61,7 @@ export default function Home() {
         }
       } catch (error: any) {
         console.error("Erro ao buscar dados:", error.message);
-        Alert.alert(
-          "Erro",
-          "Não foi possível carregar as informações"
-        );
+        Alert.alert("Erro", "Não foi possível carregar as informações");
       } finally {
         setLoading(false);
       }
@@ -91,7 +70,7 @@ export default function Home() {
     fetchData();
   }, [params.fromLogin]);
 
-  // Auto-scroll das promoções
+  // Auto-scroll das promoções (só se tiver mais de 1 slide)
   useEffect(() => {
     if (campaigns.length > 1) {
       const interval = setInterval(() => {
@@ -101,9 +80,9 @@ export default function Home() {
             scrollViewRef.current?.scrollTo({ x: 0, animated: true });
             return 0;
           } else {
-            scrollViewRef.current?.scrollTo({ 
-              x: nextSlide * (screenWidth - 48), 
-              animated: true 
+            scrollViewRef.current?.scrollTo({
+              x: nextSlide * (screenWidth - 48),
+              animated: true,
             });
             return nextSlide;
           }
@@ -125,7 +104,7 @@ export default function Home() {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR');
+    return date.toLocaleDateString("pt-BR");
   };
 
   const handlePromotionPress = () => {
@@ -138,29 +117,69 @@ export default function Home() {
       style={{ width: screenWidth - 48 }}
       className="bg-background p-8 rounded-2xl gap-4 mr-4"
     >
-      <Text className="text-white font-bold text-2xl">
-        ☕ {campaign.title}
-      </Text>
-      <Text className="text-gray-300 text-xl">
-        {campaign.description}
-      </Text>
+      <Text className="text-white font-bold text-2xl">☕ {campaign.title}</Text>
+      <Text className="text-gray-300 text-xl">{campaign.description}</Text>
       <TouchableOpacity
         className="h-14 w-32 justify-center items-center rounded-xl bg-white"
-        onPress={handlePromotionPress}
-      >
-        <Text className="text-background font-bold text-lg">
-          Ver Ofertas
-        </Text>
+        onPress={handlePromotionPress}>
+        <Text className="text-background font-bold text-lg">Ver Ofertas</Text>
       </TouchableOpacity>
     </View>
   );
 
-  const defaultPromotion = {
-    id: 'default',
-    title: 'Especial do Dia',
-    description: 'Compre qualquer café grande + ganhe um croissant grátis 🥐',
-    end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-  };
+  // Renderização quando NÃO há promoções
+  const renderNoPromotions = () => (
+    <View style={{ width: screenWidth - 48 }} className="bg-gray-100 p-8 rounded-2xl gap-4">
+      <View className="items-center justify-center">
+        <Tag size={40} color="#9CA3AF" />
+      </View>
+      <Text className="text-gray-500 font-bold text-xl text-center">
+        Nenhuma Promoção Disponível
+      </Text>
+      <Text className="text-gray-400 text-lg text-center">
+        No momento não temos promoções ativas. Continue acompanhando para não perder nossas próximas ofertas!
+      </Text>
+      <TouchableOpacity
+        className="h-14 w-40 justify-center items-center rounded-xl bg-gray-300 self-center"
+        onPress={() => router.push("/menu")}>
+        <Text className="text-gray-600 font-bold text-lg">Ver Menu</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  // Renderização quando HÁ promoções
+  const renderPromotionsSection = () => (
+    <View>
+      <ScrollView
+        ref={scrollViewRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={(event) => {
+          const slideIndex = Math.round(
+            event.nativeEvent.contentOffset.x / (screenWidth - 48)
+          );
+          setCurrentSlide(slideIndex);
+        }}
+      >
+        {campaigns.map((campaign, index) => renderPromotionSlide(campaign, index))}
+      </ScrollView>
+
+      {/* Indicadores de slide - só mostra se tiver mais de 1 promoção */}
+      {campaigns.length > 1 && (
+        <View className="flex-row justify-center mt-4 gap-2">
+          {campaigns.map((_, index) => (
+            <View
+              key={index}
+              className={`w-2 h-2 rounded-full ${
+                index === currentSlide ? "bg-background" : "bg-gray-300"
+              }`}
+            />
+          ))}
+        </View>
+      )}
+    </View>
+  );
 
   if (loading) {
     return (
@@ -267,7 +286,7 @@ export default function Home() {
             </View>
             <View className="flex-1">
               <Text className="text-background font-bold text-2xl">
-                Pedido no Drive-Thru
+                Iniciar Pedido
               </Text>
               <Text className="text-gray-400">
                 Retirada rápida, sem esperar na fila
@@ -300,59 +319,25 @@ export default function Home() {
             </TouchableOpacity>
           </View>
 
-          {/* Slide de Promoções */}
+          {/* Seção de Promoções - Agora com tratamento para quando não há promoções */}
           <View>
-            <ScrollView
-              ref={scrollViewRef}
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              onMomentumScrollEnd={(event) => {
-                const slideIndex = Math.round(
-                  event.nativeEvent.contentOffset.x / (screenWidth - 48)
-                );
-                setCurrentSlide(slideIndex);
-              }}
-            >
-              {campaigns.length > 0 ? (
-                campaigns.map((campaign, index) => renderPromotionSlide(campaign, index))
-              ) : (
-                <TouchableOpacity
-                  style={{ width: screenWidth - 48 }}
-                  className="bg-background p-8 rounded-2xl gap-4"
+            <View className="flex-row justify-between items-center mb-4">
+              <Text className="text-xl font-bold text-background">
+                🎁 Promoções Especiais
+              </Text>
+              {campaigns.length > 0 && (
+                <TouchableOpacity 
                   onPress={handlePromotionPress}
+                  className="flex-row items-center gap-1"
                 >
-                  <Text className="text-white font-bold text-2xl">
-                    ☕ {defaultPromotion.title}
-                  </Text>
-                  <Text className="text-gray-300 text-xl">
-                    {defaultPromotion.description}
-                  </Text>
-                  <TouchableOpacity
-                    className="h-14 w-32 justify-center items-center rounded-xl bg-white"
-                    onPress={handlePromotionPress}
-                  >
-                    <Text className="text-background font-bold text-lg">
-                      Ver Ofertas
-                    </Text>
-                  </TouchableOpacity>
+                  <Text className="text-background text-sm">Ver todas</Text>
+                  <ArrowRight size={16} color="#503B36" />
                 </TouchableOpacity>
               )}
-            </ScrollView>
+            </View>
 
-            {/* Indicadores de slide */}
-            {campaigns.length > 1 && (
-              <View className="flex-row justify-center mt-4 gap-2">
-                {campaigns.map((_, index) => (
-                  <View
-                    key={index}
-                    className={`w-2 h-2 rounded-full ${
-                      index === currentSlide ? 'bg-background' : 'bg-gray-300'
-                    }`}
-                  />
-                ))}
-              </View>
-            )}
+            {/* Renderização condicional */}
+            {campaigns.length > 0 ? renderPromotionsSection() : renderNoPromotions()}
           </View>
         </View>
 
@@ -413,13 +398,13 @@ export default function Home() {
 
       <View className="flex-row justify-between items-center bg-white p-6 border-t border-gray-300 absolute bottom-0 left-0 right-0">
         <TouchableOpacity
-          onPress={() => router.push("/myreservation")}
+          onPress={() => router.push("/myorders")}
           className="p-4"
         >
           <Coffee size={20} color="#503B36" />
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => router.push("/reservation")}
+          onPress={() => router.push("/myreservation")}
           className="p-4"
         >
           <Calendar size={20} color="#503B36" />

@@ -17,20 +17,33 @@ export default function RecoverPassword() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const handleRecover = async () => {
     if (!email) {
       Alert.alert("Erro", "Por favor, insira o seu email");
       return;
     }
 
+    if (!validateEmail(email)) {
+      Alert.alert("Erro", "Por favor, insira um email válido");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      Alert.alert(
-        "Sucesso",
-        "Enviamos um email com instruções para recuperar a sua password."
-      );
-      router.replace("/login");
+      // Aqui você chamaria authService.requestPasswordReset(email)
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Navegar para tela de OTP
+      router.push({
+        pathname: "/otp-verification" as any,
+        params: { email },
+      });
     } catch (error: any) {
       Alert.alert(
         "Erro",
@@ -60,7 +73,7 @@ export default function RecoverPassword() {
           Esqueceu a sua password?
         </Text>
         <Text className="text-gray-600 text-xl">
-          Insira o seu email para receber instruções de recuperação.
+          Insira o seu email para receber um código de verificação.
         </Text>
       </View>
 
@@ -87,7 +100,9 @@ export default function RecoverPassword() {
           {loading ? (
             <ActivityIndicator color="white" />
           ) : (
-            <Text className="text-white font-semibold">Recuperar Password</Text>
+            <Text className="text-white font-semibold text-lg">
+              Enviar Código
+            </Text>
           )}
         </TouchableOpacity>
       </View>
