@@ -158,7 +158,7 @@ export default function Wallet() {
             <View className="gap-1">
               <Text className="text-yellow-300 text-xl">Saldo Actual</Text>
               <Text className="text-white text-4xl font-bold">
-                ${accountInfo?.data?.account.wallet_balance?.toFixed(2) ?? "0.00"}
+                {accountInfo?.data?.account.wallet_balance?.toFixed(2) ?? "0.00"} MT
               </Text>
             </View>
             <CreditCard size={50} color="#fde047" />
@@ -265,7 +265,7 @@ export default function Wallet() {
                 </View>
                 <View className="items-end">
                   <Text className={`font-bold text-xl ${isTopup ? "text-green-500" : "text-red-500"}`}>
-                    {isTopup ? `+$${tx.amount}` : `-$${tx.amount}`}
+                    {isTopup ? `+${(tx.amount as number).toFixed(2)} MT` : `-${(tx.amount as number).toFixed(2)} MT`}
                   </Text>
                   <Text className="text-gray-500 capitalize text-sm">{tx.status}</Text>
                 </View>

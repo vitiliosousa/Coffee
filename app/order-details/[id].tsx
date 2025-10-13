@@ -98,7 +98,7 @@ export default function OrderDetails() {
   };
 
   const formatCurrency = (amount: number) => {
-    return `$${amount.toFixed(2)}`;
+    return `${amount.toFixed(2)} MT`;
   };
 
   const getStatusColor = (status: OrderStatus) => {
@@ -413,7 +413,7 @@ export default function OrderDetails() {
                 {order.type === OrderType.DELIVERY && (
                   <View className="flex-row justify-between py-2">
                     <Text className="text-gray-600">Taxa de Entrega</Text>
-                    <Text className="text-gray-900">$2.50</Text>
+                    <Text className="text-gray-900">2.50 MT</Text>
                   </View>
                 )}
                 

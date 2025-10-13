@@ -126,7 +126,9 @@ export default function History() {
                         isTopup ? "text-green-600" : "text-red-600"
                       }`}
                     >
-                      {isTopup ? `+${tx.amount}` : `-${tx.amount}`}
+                      {isTopup
+                        ? `+${(tx.amount as number).toFixed(2)} MT`
+                        : `-${(tx.amount as number).toFixed(2)} MT`}
                     </Text>
                     <Text className="capitalize">{tx.status}</Text>
                   </View>

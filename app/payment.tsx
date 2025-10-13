@@ -14,6 +14,7 @@ import {
   View,
   ActivityIndicator,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { authService, AccountInfoResponse } from "@/services/auth.service";
 import { 
   orderService, 
@@ -170,6 +171,10 @@ export default function Payment() {
       if (isSuccess && response.data) {
         console.log("Pedido criado com sucesso:", response.data.id);
         
+        // 🔥 LIMPAR CARRINHO DO ASYNCSTORAGE
+        await AsyncStorage.removeItem('cartItems');
+        console.log("Carrinho limpo do AsyncStorage");
+        
         // Navegar para confirmação com dados do pedido
         router.push({
           pathname: "/order-confirmation",
@@ -235,7 +240,7 @@ export default function Payment() {
             </View>
           </View>
           <Text className="text-2xl font-semibold text-background">
-            ${orderData.total.toFixed(2)}
+            {orderData.total.toFixed(2)} MT
           </Text>
         </View>
 
@@ -244,24 +249,24 @@ export default function Payment() {
           <Text className="text-lg font-semibold mb-2">Resumo do Pedido</Text>
           <View className="flex-row justify-between">
             <Text>Subtotal</Text>
-            <Text>${orderData.subtotal.toFixed(2)}</Text>
+            <Text>{orderData.subtotal.toFixed(2)} MT</Text>
           </View>
           {orderData.deliveryFee > 0 && (
             <View className="flex-row justify-between">
               <Text>Taxa de Entrega</Text>
-              <Text>${orderData.deliveryFee.toFixed(2)}</Text>
+              <Text>{orderData.deliveryFee.toFixed(2)} MT</Text>
             </View>
           )}
           {orderData.discount > 0 && (
             <View className="flex-row justify-between">
               <Text>Desconto</Text>
-              <Text>-${orderData.discount.toFixed(2)}</Text>
+              <Text>-{orderData.discount.toFixed(2)} MT</Text>
             </View>
           )}
           <View className="w-full border-t border-gray-300 my-2"></View>
           <View className="flex-row justify-between">
             <Text className="text-lg font-bold">Total</Text>
-            <Text className="text-lg font-bold">${orderData.total.toFixed(2)}</Text>
+            <Text className="text-lg font-bold">{orderData.total.toFixed(2)} MT</Text>
           </View>
         </View>
 
@@ -275,7 +280,7 @@ export default function Payment() {
               <View>
                 <Text className="font-semibold text-xl">Saldo da Carteira</Text>
                 <Text className="text-lg text-gray-600">
-                  Disponível: ${availableBalance.toFixed(2)}
+                  Disponível: {availableBalance.toFixed(2)} MT
                 </Text>
               </View>
             </View>
@@ -294,13 +299,6 @@ export default function Payment() {
               <CheckCircle size={20} color="#503B36" />
             </View>
           </View>
-
-          {/* Aviso sobre método único */}
-          <View className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <Text className="text-blue-800 text-sm text-center">
-              💡 Atualmente aceitamos apenas pagamento com saldo da carteira
-            </Text>
-          </View>
         </View>
       </ScrollView>
 
@@ -316,7 +314,7 @@ export default function Payment() {
           }`}
         >
           <Text className="text-white font-bold text-lg">
-            {processing ? 'Processando pedido...' : `Finalizar Pedido - $${orderData.total.toFixed(2)}`}
+            {processing ? 'Processando pedido...' : `Finalizar Pedido - ${orderData.total.toFixed(2)} MT`}
           </Text>
         </TouchableOpacity>
       </View>

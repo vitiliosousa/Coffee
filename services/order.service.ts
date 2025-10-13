@@ -257,26 +257,28 @@ class OrderService {
     });
 
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data.message || "Erro ao processar requisição");
     }
-    
+
     return data;
   }
 
   // 1️⃣ Criar pedido
-  async createOrder(orderData: CreateOrderRequest): Promise<CreateOrderResponse> {
+  async createOrder(
+    orderData: CreateOrderRequest
+  ): Promise<CreateOrderResponse> {
     // Limpar campos undefined antes de enviar
     const cleanedData = {
       ...orderData,
       table_id: orderData.table_id || undefined,
       delivery_address: orderData.delivery_address || undefined,
       scheduled_time: orderData.scheduled_time || undefined,
-      items: orderData.items.map(item => ({
+      items: orderData.items.map((item) => ({
         ...item,
-        variant_id: item.variant_id || undefined
-      }))
+        variant_id: item.variant_id || undefined,
+      })),
     };
 
     return this.makeAuthenticatedRequest<CreateOrderResponse>("/users/orders", {
@@ -286,7 +288,9 @@ class OrderService {
   }
 
   // 2️⃣ Buscar pedidos
-  async searchOrders(filters: SearchOrdersRequest): Promise<SearchOrdersResponse> {
+  async searchOrders(
+    filters: SearchOrdersRequest
+  ): Promise<SearchOrdersResponse> {
     const queryParams = new URLSearchParams();
 
     Object.entries(filters).forEach(([key, value]) => {
@@ -296,7 +300,9 @@ class OrderService {
     });
 
     const queryString = queryParams.toString();
-    const endpoint = queryString ? `/users/orders?${queryString}` : "/users/orders";
+    const endpoint = queryString
+      ? `/users/orders?${queryString}`
+      : "/users/orders";
 
     return this.makeAuthenticatedRequest<SearchOrdersResponse>(endpoint, {
       method: "GET",
@@ -328,15 +334,23 @@ class OrderService {
   }
 
   // 6️⃣ Criar pedido em andamento
-  async createOngoingOrder(orderData: CreateOrderRequest): Promise<CreateOrderResponse> {
-    return this.makeAuthenticatedRequest<CreateOrderResponse>("/users/orders/ongoing", {
-      method: "POST",
-      body: JSON.stringify(orderData),
-    });
+  async createOngoingOrder(
+    orderData: CreateOrderRequest
+  ): Promise<CreateOrderResponse> {
+    return this.makeAuthenticatedRequest<CreateOrderResponse>(
+      "/users/orders/ongoing",
+      {
+        method: "POST",
+        body: JSON.stringify(orderData),
+      }
+    );
   }
 
   // 7️⃣ Adicionar item ao pedido em andamento
-  async addItemToOrder(orderId: string, item: OrderItemRequest): Promise<AddItemResponse> {
+  async addItemToOrder(
+    orderId: string,
+    item: OrderItemRequest
+  ): Promise<AddItemResponse> {
     return this.makeAuthenticatedRequest<AddItemResponse>(
       `/users/orders/${orderId}/items`,
       {
@@ -347,7 +361,10 @@ class OrderService {
   }
 
   // 8️⃣ Remover item do pedido em andamento
-  async removeItemFromOrder(orderId: string, itemId: string): Promise<RemoveItemResponse> {
+  async removeItemFromOrder(
+    orderId: string,
+    itemId: string
+  ): Promise<RemoveItemResponse> {
     return this.makeAuthenticatedRequest<RemoveItemResponse>(
       `/users/orders/${orderId}/items/${itemId}/remove`,
       { method: "DELETE" }
@@ -355,19 +372,29 @@ class OrderService {
   }
 
   // 9️⃣ Atualizar status do pedido
-  async updateOrderStatus(updateData: UpdateStatusRequest): Promise<UpdateStatusResponse> {
-    return this.makeAuthenticatedRequest<UpdateStatusResponse>("/users/orders/update-status", {
-      method: "POST",
-      body: JSON.stringify(updateData),
-    });
+  async updateOrderStatus(
+    updateData: UpdateStatusRequest
+  ): Promise<UpdateStatusResponse> {
+    return this.makeAuthenticatedRequest<UpdateStatusResponse>(
+      "/users/orders/update-status",
+      {
+        method: "POST",
+        body: JSON.stringify(updateData),
+      }
+    );
   }
 
   // 🔟 Atualizar estado do pedido
-  async updateOrderState(updateData: UpdateStateRequest): Promise<UpdateStateResponse> {
-    return this.makeAuthenticatedRequest<UpdateStateResponse>("/users/orders/update-state", {
-      method: "POST",
-      body: JSON.stringify(updateData),
-    });
+  async updateOrderState(
+    updateData: UpdateStateRequest
+  ): Promise<UpdateStateResponse> {
+    return this.makeAuthenticatedRequest<UpdateStateResponse>(
+      "/users/orders/update-state",
+      {
+        method: "POST",
+        body: JSON.stringify(updateData),
+      }
+    );
   }
 
   // 1️⃣1️⃣ Realizar transação do pedido via QR Code
@@ -375,7 +402,7 @@ class OrderService {
     // Buscar userId do token/storage
     const account = await this.getAccountInfo();
     const userId = account.data.account.id;
-    
+
     return this.makeAuthenticatedRequest<TransactionResponse>(
       `/users/orders/perform-transaction/${userId}`,
       {

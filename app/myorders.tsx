@@ -20,6 +20,7 @@ import {
   CreditCard,
 } from "lucide-react-native";
 import { orderService, Order, OrderStatus, OrderType } from "@/services/order.service";
+import { RefreshControl } from "react-native";
 
 export default function MyOrders() {
   const router = useRouter();
@@ -85,7 +86,7 @@ export default function MyOrders() {
   };
 
   const formatCurrency = (amount: number) => {
-    return `$${amount.toFixed(2)}`;
+    return `${amount.toFixed(2)} MT`;
   };
 
   const getStatusColor = (status: OrderStatus) => {
@@ -340,4 +341,3 @@ export default function MyOrders() {
 }
 
 // Adicione o import do RefreshControl no topo do arquivo
-import { RefreshControl } from "react-native";

@@ -164,7 +164,7 @@ export default function OrderConfirmation() {
             </View>
             <View className="flex-row justify-between items-center">
               <Text className="text-xl font-bold">Total pago:</Text>
-              <Text className="text-xl font-bold text-background">${orderData.total.toFixed(2)}</Text>
+              <Text className="text-xl font-bold text-background">{orderData.total.toFixed(2)} MT</Text>
             </View>
           </View>
         </View>

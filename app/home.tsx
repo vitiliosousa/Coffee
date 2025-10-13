@@ -366,7 +366,7 @@ export default function Home() {
               </Text>
               <View className="flex-row items-center justify-between">
                 <Text className="text-background font-bold text-lg">
-                  R$ 4,50
+                  4,50 MT
                 </Text>
                 <Text className="text-background text-lg">4.9</Text>
               </View>
@@ -387,7 +387,7 @@ export default function Home() {
               </Text>
               <View className="flex-row items-center justify-between">
                 <Text className="text-background font-bold text-lg">
-                  R$ 4,50
+                  4,50 MT
                 </Text>
                 <Text className="text-background text-lg">4.9</Text>
               </View>

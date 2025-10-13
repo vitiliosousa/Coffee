@@ -126,7 +126,7 @@ export default function QRScanner() {
     if (availableBalance < orderDetails.total_amount) {
       Alert.alert(
         "Saldo Insuficiente",
-        `Você precisa de $${orderDetails.total_amount.toFixed(2)} mas tem apenas $${availableBalance.toFixed(2)}`
+        `Você precisa de ${orderDetails.total_amount.toFixed(2)} MT mas tem apenas ${availableBalance.toFixed(2)} MT`
       );
       return;
     }
@@ -139,7 +139,7 @@ export default function QRScanner() {
       if (response.success) {
         Alert.alert(
           "Pagamento Realizado!",
-          `Pedido pago com sucesso. Valor: $${orderDetails.total_amount.toFixed(2)}`,
+          `Pedido pago com sucesso. Valor: ${orderDetails.total_amount.toFixed(2)} MT`,
           [
             {
               text: "OK",
@@ -244,7 +244,7 @@ export default function QRScanner() {
                 }
               </Text>
               <Text className="text-center text-gray-600 mt-2">
-                Saldo disponível: ${availableBalance.toFixed(2)}
+                Saldo disponível: {availableBalance.toFixed(2)} MT
               </Text>
               {scanned && !processing && !showOrderModal && (
                 <TouchableOpacity 
@@ -299,7 +299,7 @@ export default function QRScanner() {
                   <View className="flex-row justify-between">
                     <Text className="text-xl font-bold">Total:</Text>
                     <Text className="text-xl font-bold text-background">
-                      ${orderDetails.total_amount.toFixed(2)}
+                      {orderDetails.total_amount.toFixed(2)} MT
                     </Text>
                   </View>
                 </View>
@@ -307,7 +307,7 @@ export default function QRScanner() {
                 <View className="bg-blue-50 rounded-xl p-4 mb-4">
                   <Text className="font-semibold mb-2">Seu Saldo:</Text>
                   <Text className="text-2xl font-bold text-blue-600">
-                    ${availableBalance.toFixed(2)}
+                    {availableBalance.toFixed(2)} MT
                   </Text>
                   {availableBalance < orderDetails.total_amount && (
                     <Text className="text-red-600 mt-2">

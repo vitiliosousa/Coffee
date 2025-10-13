@@ -173,10 +173,9 @@ export default function Menu() {
                     {item.category?.name || "Uncategorized"}
                   </Text>
                   <Text className="text-background text-xl font-semibold mt-1">
-                    $
                     {typeof item.price === "number"
                       ? item.price.toFixed(2)
-                      : item.price}
+                      : item.price} MT
                   </Text>
                 </View>
               </View>
