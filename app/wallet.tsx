@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Modal } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Modal, TextInput } from "react-native";
 import { useRouter, Link } from "expo-router";
-import { ChevronLeft, CreditCard, Plus, RotateCcw, Banknote, Smartphone, QrCode, Copy, X } from "lucide-react-native";
+import { ChevronLeft, CreditCard, Plus, RotateCcw, Banknote, Smartphone, QrCode, Copy, X, Clock } from "lucide-react-native";
 import { authService, AccountInfoResponse, WalletTransactionsResponse, Transaction } from "@/services/auth.service";
+import { adminService, PaymentCode } from "@/services/admin.service";
+import * as Clipboard from 'expo-clipboard';
 
 export default function Wallet() {
   const router = useRouter();
@@ -10,8 +12,10 @@ export default function Wallet() {
   const [accountInfo, setAccountInfo] = useState<AccountInfoResponse | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [showPaymentIdModal, setShowPaymentIdModal] = useState(false);
-  const [paymentId, setPaymentId] = useState("");
-  const [generatingId, setGeneratingId] = useState(false);
+  const [paymentCode, setPaymentCode] = useState<PaymentCode | null>(null);
+  const [generatingCode, setGeneratingCode] = useState(false);
+  const [amount, setAmount] = useState("");
+  const [validityMinutes, setValidityMinutes] = useState("30");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -20,7 +24,6 @@ export default function Wallet() {
         setAccountInfo(account);
 
         const txResponse: WalletTransactionsResponse = await authService.getWalletTransactions();
-        // Ordenar da mais recente para a mais antiga
         const sortedTx = txResponse.data.items.sort(
           (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
@@ -35,33 +38,59 @@ export default function Wallet() {
     fetchData();
   }, []);
 
-  const generatePaymentId = async () => {
-    setGeneratingId(true);
+  const generatePaymentCode = async () => {
+    if (!amount || parseFloat(amount) <= 0) {
+      Alert.alert("Valor inválido", "Por favor, insira um valor válido para receber.");
+      return;
+    }
+
+    const minutes = parseInt(validityMinutes) || 30;
+    if (minutes < 1 || minutes > 1440) {
+      Alert.alert("Validade inválida", "A validade deve ser entre 1 e 1440 minutos (24 horas).");
+      return;
+    }
+
+    setGeneratingCode(true);
     try {
-      // Simular geração de ID de pagamento
-      // Substitua por sua lógica real de API
-      const newPaymentId = `PAY-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
-      setPaymentId(newPaymentId);
-      
-      // Aqui você pode integrar com sua API real:
-      // const response = await paymentService.generatePaymentId();
-      // setPaymentId(response.data.payment_id);
-      
+      const response = await adminService.generatePaymentCode(parseFloat(amount), minutes);
+      setPaymentCode(response.data);
     } catch (error: any) {
-      Alert.alert("Erro", "Não foi possível gerar o ID de pagamento");
+      console.error("Erro ao gerar código:", error);
+      Alert.alert(
+        "Erro", 
+        error.message || "Não foi possível gerar o código de pagamento. Tente novamente."
+      );
     } finally {
-      setGeneratingId(false);
+      setGeneratingCode(false);
     }
   };
 
-  const copyToClipboard = () => {
-    // Implementar lógica de copiar para área de transferência
-    Alert.alert("Copiado!", "ID de pagamento copiado para a área de transferência");
+  const copyToClipboard = async () => {
+    if (paymentCode) {
+      await Clipboard.setStringAsync(paymentCode.code);
+      Alert.alert("Copiado!", "Código de pagamento copiado para a área de transferência");
+    }
   };
 
-  const handleGeneratePaymentId = () => {
+  const handleOpenModal = () => {
     setShowPaymentIdModal(true);
-    generatePaymentId();
+    setPaymentCode(null);
+    setAmount("");
+    setValidityMinutes("30");
+  };
+
+  const formatExpiryTime = (expiresAt: string) => {
+    const expiryDate = new Date(expiresAt);
+    const now = new Date();
+    const diffMs = expiryDate.getTime() - now.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    
+    if (diffMins < 0) return "Expirado";
+    if (diffMins < 60) return `${diffMins} minutos`;
+    
+    const hours = Math.floor(diffMins / 60);
+    const mins = diffMins % 60;
+    return `${hours}h ${mins}min`;
   };
 
   if (loading) {
@@ -77,7 +106,7 @@ export default function Wallet() {
 
   return (
     <View className="flex-1 bg-white">
-      {/* Modal do ID de Pagamento */}
+      {/* Modal do Código de Pagamento */}
       <Modal
         visible={showPaymentIdModal}
         transparent
@@ -88,7 +117,7 @@ export default function Wallet() {
           <View className="bg-white rounded-2xl w-full max-w-sm p-6">
             {/* Header do Modal */}
             <View className="flex-row justify-between items-center mb-4">
-              <Text className="text-xl font-bold text-background">ID de Pagamento</Text>
+              <Text className="text-xl font-bold text-background">Código de Pagamento</Text>
               <TouchableOpacity 
                 onPress={() => setShowPaymentIdModal(false)}
                 className="p-2"
@@ -98,45 +127,99 @@ export default function Wallet() {
             </View>
 
             {/* Conteúdo do Modal */}
-            <View className="items-center gap-4">
-              <View className="bg-background/10 p-4 rounded-xl w-full">
-                <Text className="text-center text-sm text-gray-600 mb-2">
-                  Compartilhe este ID para receber pagamentos
-                </Text>
-                
-                {generatingId ? (
-                  <View className="py-4 items-center">
-                    <ActivityIndicator size="small" color="#503B36" />
-                    <Text className="text-gray-500 mt-2">Gerando ID...</Text>
-                  </View>
-                ) : (
-                  <View className="items-center gap-3">
-                    <Text className="text-2xl font-bold text-background text-center">
-                      {paymentId}
+            {!paymentCode ? (
+              <View className="gap-4">
+                <View>
+                  <Text className="text-gray-700 font-semibold mb-2">Valor a Receber (MT)</Text>
+                  <TextInput
+                    value={amount}
+                    onChangeText={setAmount}
+                    placeholder="0.00"
+                    keyboardType="decimal-pad"
+                    className="border border-gray-300 rounded-lg px-4 py-3 text-lg"
+                  />
+                </View>
+
+                <View>
+                  <Text className="text-gray-700 font-semibold mb-2">Validade (minutos)</Text>
+                  <TextInput
+                    value={validityMinutes}
+                    onChangeText={setValidityMinutes}
+                    placeholder="30"
+                    keyboardType="number-pad"
+                    className="border border-gray-300 rounded-lg px-4 py-3 text-lg"
+                  />
+                  <Text className="text-xs text-gray-500 mt-1">
+                    Mínimo: 1 minuto | Máximo: 1440 minutos (24h)
+                  </Text>
+                </View>
+
+                <TouchableOpacity
+                  onPress={generatePaymentCode}
+                  disabled={generatingCode}
+                  className={`py-3 rounded-xl ${generatingCode ? 'bg-gray-400' : 'bg-background'}`}
+                >
+                  {generatingCode ? (
+                    <ActivityIndicator size="small" color="white" />
+                  ) : (
+                    <Text className="text-white font-semibold text-center text-lg">
+                      Gerar Código
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View className="items-center gap-4">
+                <View className="bg-green-50 p-4 rounded-xl w-full border-2 border-green-200">
+                  <Text className="text-center text-sm text-gray-600 mb-3">
+                    Compartilhe este código para receber o pagamento
+                  </Text>
+                  
+                  <View className="items-center gap-3 bg-white p-4 rounded-lg">
+                    <Text className="text-4xl font-bold text-background tracking-widest">
+                      {paymentCode.code}
                     </Text>
                     
-                    <TouchableOpacity
-                      onPress={copyToClipboard}
-                      className="flex-row items-center gap-2 bg-background px-4 py-2 rounded-full"
-                    >
-                      <Copy size={16} color="#FFFFFF" />
-                      <Text className="text-white font-semibold">Copiar ID</Text>
-                    </TouchableOpacity>
+                    <View className="flex-row items-center gap-2">
+                      <Text className="text-2xl font-bold text-green-600">
+                        {paymentCode.amount.toFixed(2)} MT
+                      </Text>
+                    </View>
+
+                    <View className="flex-row items-center gap-1">
+                      <Clock size={14} color="#6B7280" />
+                      <Text className="text-xs text-gray-500">
+                        Expira em: {formatExpiryTime(paymentCode.expires_at)}
+                      </Text>
+                    </View>
                   </View>
-                )}
+                  
+                  <TouchableOpacity
+                    onPress={copyToClipboard}
+                    className="flex-row items-center justify-center gap-2 bg-background px-4 py-3 rounded-full mt-3"
+                  >
+                    <Copy size={18} color="#FFFFFF" />
+                    <Text className="text-white font-semibold">Copiar Código</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text className="text-center text-xs text-gray-500 px-4">
+                  O pagador deve usar este código para efetuar o pagamento do valor especificado.
+                </Text>
+
+                <TouchableOpacity
+                  onPress={() => {
+                    setPaymentCode(null);
+                    setAmount("");
+                  }}
+                  className="w-full bg-gray-200 py-3 rounded-xl"
+                >
+                  <Text className="text-center font-semibold text-gray-700">
+                    Gerar Novo Código
+                  </Text>
+                </TouchableOpacity>
               </View>
-
-              <Text className="text-center text-xs text-gray-500">
-                Este ID expira em 24 horas. Compartilhe com quem deseja receber o pagamento.
-              </Text>
-
-              <TouchableOpacity
-                onPress={() => setShowPaymentIdModal(false)}
-                className="w-full bg-gray-200 py-3 rounded-xl mt-2"
-              >
-                <Text className="text-center font-semibold text-gray-700">Fechar</Text>
-              </TouchableOpacity>
-            </View>
+            )}
           </View>
         </View>
       </Modal>
@@ -205,7 +288,7 @@ export default function Wallet() {
             {/* Botão QR Code */}
             <TouchableOpacity
               onPress={() => router.push("/qrscanner")}
-              className="bg-gradient-to-r from-yellow-400 to-yellow-500 bg-yellow-400 rounded-xl p-4 flex-1 flex-row items-center justify-center gap-3 border-2 border-yellow-500 shadow-lg"
+              className="bg-yellow-400 rounded-xl p-4 flex-1 flex-row items-center justify-center gap-3 border-2 border-yellow-500 shadow-lg"
             >
               <QrCode size={24} color="#503B36" strokeWidth={2.5} />
               <View className="flex-1">
@@ -214,14 +297,14 @@ export default function Wallet() {
               </View>
             </TouchableOpacity>
 
-            {/* Botão Gerar ID de Pagamento */}
+            {/* Botão Gerar Código de Pagamento */}
             <TouchableOpacity
-              onPress={handleGeneratePaymentId}
-              className="bg-gradient-to-r from-green-400 to-green-500 bg-green-400 rounded-xl p-4 flex-1 flex-row items-center justify-center gap-3 border-2 border-green-500 shadow-lg"
+              onPress={handleOpenModal}
+              className="bg-green-400 rounded-xl p-4 flex-1 flex-row items-center justify-center gap-3 border-2 border-green-500 shadow-lg"
             >
               <Copy size={24} color="#FFFFFF" strokeWidth={2.5} />
               <View className="flex-1">
-                <Text className="text-white font-bold text-base">Gerar ID</Text>
+                <Text className="text-white font-bold text-base">Gerar Código</Text>
                 <Text className="text-white/80 text-xs">Receber pagamento</Text>
               </View>
             </TouchableOpacity>
@@ -265,7 +348,7 @@ export default function Wallet() {
                 </View>
                 <View className="items-end">
                   <Text className={`font-bold text-xl ${isTopup ? "text-green-500" : "text-red-500"}`}>
-                    {isTopup ? `+${(tx.amount as number).toFixed(2)} MT` : `-${(tx.amount as number).toFixed(2)} MT`}
+                    {isTopup ? `+${Number(tx.amount).toFixed(2)} MT` : `-${Number(tx.amount).toFixed(2)} MT`}
                   </Text>
                   <Text className="text-gray-500 capitalize text-sm">{tx.status}</Text>
                 </View>

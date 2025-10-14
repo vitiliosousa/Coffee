@@ -102,12 +102,10 @@ export default function MyReservation() {
 
   const canCancelReservation = (reservation: Reservation) => {
     const status = reservation.status.toLowerCase();
-    // Permitir cancelar apenas se não estiver cancelada e não estiver no passado
     if (status === 'cancelled' || status === 'canceled') {
       return false;
     }
     
-    // Verificar se a reserva não está no passado
     const reservationDate = new Date(reservation.date);
     const now = new Date();
     return reservationDate >= now;
@@ -136,14 +134,30 @@ export default function MyReservation() {
     const timeDiff = reservationTime.getTime() - now.getTime();
     const minutesDiff = timeDiff / (1000 * 60);
 
-    return isToday && minutesDiff <= 30 && minutesDiff >= -120; // Permite até 2 horas de atraso
+    return isToday && minutesDiff <= 30 && minutesDiff >= -120;
+  };
+
+  const shouldShowCheckInButton = (reservation: Reservation) => {
+    const status = reservation.status.toLowerCase();
+    
+    // Mostrar botão apenas se não estiver cancelada e não tiver feito check-in
+    if (status === 'cancelled' || status === 'canceled' || reservation.check_in) {
+      return false;
+    }
+
+    // Verificar se é o dia da reserva
+    const reservationDate = new Date(reservation.date);
+    const now = new Date();
+    const isToday = reservationDate.toDateString() === now.toDateString();
+
+    return isToday;
   };
 
   const handleCheckIn = (reservation: Reservation) => {
     if (!canCheckIn(reservation)) {
       Alert.alert(
         "Check-in não disponível",
-        "O check-in só está disponível no dia da reserva, a partir de 30 minutos antes do horário agendado."
+        "O check-in só está disponível a partir de 30 minutos antes do horário agendado e até 2 horas após."
       );
       return;
     }
@@ -165,12 +179,9 @@ export default function MyReservation() {
   const confirmCheckIn = async (reservationId: string) => {
     setCheckingIn(reservationId);
     try {
-      // CHAMADA REAL DA API PARA CHECK-IN
       await reservationService.checkIn(reservationId);
       
       Alert.alert("Sucesso", "Check-in realizado com sucesso! Boa estadia!");
-      
-      // Recarregar a lista para refletir o check-in
       await loadReservations();
       
     } catch (error: any) {
@@ -242,6 +253,7 @@ export default function MyReservation() {
     const statusColors = getStatusColor(reservation.status);
     const canCancel = canCancelReservation(reservation);
     const canDoCheckIn = canCheckIn(reservation);
+    const showCheckInButton = shouldShowCheckInButton(reservation);
     const isCheckedIn = reservation.check_in;
     
     return (
@@ -297,20 +309,29 @@ export default function MyReservation() {
         {/* Botões de Ação */}
         <View className="flex-row justify-between items-center mt-2 gap-3">
           {/* Botão Check-in */}
-          {canDoCheckIn && (
+          {showCheckInButton && (
             <TouchableOpacity 
               onPress={() => handleCheckIn(reservation)}
-              disabled={checkingIn === reservation.id}
+              disabled={checkingIn === reservation.id || !canDoCheckIn}
               className={`flex-1 flex-row gap-2 items-center justify-center px-4 py-3 rounded-xl ${
-                checkingIn === reservation.id ? 'bg-gray-400' : 'bg-green-500'
+                checkingIn === reservation.id 
+                  ? 'bg-gray-400' 
+                  : canDoCheckIn 
+                    ? 'bg-green-500' 
+                    : 'bg-gray-400'
               }`}
             >
               {checkingIn === reservation.id ? (
                 <ActivityIndicator size="small" color="white" />
               ) : (
                 <>
-                  <CheckCircle size={18} color={"#FFFFFF"} />
-                  <Text className="text-white font-semibold">Check-in</Text>
+                  <CheckCircle 
+                    size={18} 
+                    color={canDoCheckIn ? "#FFFFFF" : "#999999"} 
+                  />
+                  <Text className={`font-semibold ${canDoCheckIn ? 'text-white' : 'text-gray-500'}`}>
+                    Check-in
+                  </Text>
                 </>
               )}
             </TouchableOpacity>
@@ -337,10 +358,10 @@ export default function MyReservation() {
           )}
 
           {/* Mensagem quando não há ações disponíveis */}
-          {!canDoCheckIn && !canCancel && reservation.status.toLowerCase() !== 'cancelled' && reservation.status.toLowerCase() !== 'canceled' && (
+          {!showCheckInButton && !canCancel && !isCheckedIn && reservation.status.toLowerCase() !== 'cancelled' && reservation.status.toLowerCase() !== 'canceled' && (
             <View className="flex-1 items-center">
               <Text className="text-yellow-300 text-sm text-center">
-                Nenhuma ação disponível
+                Aguardando data da reserva
               </Text>
             </View>
           )}

@@ -68,22 +68,7 @@ export default function Promotions() {
     return date.toLocaleDateString('pt-BR');
   };
 
-  const handleAvailOffer = (campaign: Campaign) => {
-    Alert.alert(
-      "Oferta Ativada",
-      `A promoção "${campaign.title}" foi ativada! Aproveite sua oferta.`,
-      [
-        {
-          text: "OK",
-          onPress: () => {
-            // Aqui você pode implementar a lógica para aplicar a promoção
-            // Por exemplo, redirecionar para o menu ou salvar a promoção ativa
-            console.log("Promoção ativada:", campaign.id);
-          }
-        }
-      ]
-    );
-  };
+  
 
   const renderPromotionCard = (campaign: Campaign) => (
     <View key={campaign.id} className="flex-1 bg-fundo rounded-xl mb-6">
@@ -123,14 +108,6 @@ export default function Promotions() {
         
         </View>
       </View>
-
-      {/* Botão de ação */}
-      <TouchableOpacity 
-        className="flex-1 bg-background items-center justify-center p-4 rounded-b-xl"
-        onPress={() => handleAvailOffer(campaign)}
-      >
-        <Text className="text-white font-semibold">Avail Offer</Text>
-      </TouchableOpacity>
     </View>
   );
 

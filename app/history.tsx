@@ -9,14 +9,45 @@ import {
 } from "react-native";
 import { Link } from "expo-router";
 import { ChevronLeft, Banknote, Smartphone } from "lucide-react-native";
-import DotsWhite from "@/components/DotsWhite";
 import { authService, Transaction } from "@/services/auth.service";
 
 export default function History() {
-  const [selectedFilter, setSelectedFilter] = useState("All");
+  const [selectedFilter, setSelectedFilter] = useState("Todos");
   const [search, setSearch] = useState("");
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Tradução de status
+  const translateStatus = (status: string): string => {
+    const statusMap: { [key: string]: string } = {
+      confirmed: "Confirmada",
+      pending: "Pendente",
+      rejected: "Rejeitada",
+      completed: "Completa",
+      failed: "Falhada",
+    };
+    return statusMap[status.toLowerCase()] || status;
+  };
+
+  // Tradução de tipo de transação
+  const translateType = (type: string): string => {
+    const typeMap: { [key: string]: string } = {
+      topup: "Recarga",
+      payment: "Pagamento",
+      transfer: "Transferência",
+      refund: "Reembolso",
+      withdrawal: "Levantamento",
+    };
+    return typeMap[type.toLowerCase()] || type;
+  };
+
+  // Mapeamento de filtros (frontend em PT -> API em EN)
+  const filterMap: { [key: string]: string } = {
+    "Todos": "all",
+    "Confirmada": "confirmed",
+    "Pendente": "pending",
+    "Rejeitada": "rejected",
+  };
 
   // Buscar transações do usuário
   useEffect(() => {
@@ -35,11 +66,15 @@ export default function History() {
   }, []);
 
   const filteredTransactions = transactions.filter((tx) => {
+    const filterValue = filterMap[selectedFilter];
     const matchFilter =
-      selectedFilter === "All" || tx.status === selectedFilter.toLowerCase();
+      filterValue === "all" || tx.status.toLowerCase() === filterValue;
+    
     const matchSearch =
-      tx.type.toLowerCase().includes(search.toLowerCase()) ||
-      tx.description?.toLowerCase().includes(search.toLowerCase());
+      translateType(tx.type).toLowerCase().includes(search.toLowerCase()) ||
+      tx.description?.toLowerCase().includes(search.toLowerCase()) ||
+      translateStatus(tx.status).toLowerCase().includes(search.toLowerCase());
+    
     return matchFilter && matchSearch;
   });
 
@@ -52,7 +87,7 @@ export default function History() {
             <ChevronLeft size={24} color={"#FFFFFF"} />
           </Link>
           <Text className="text-white text-2xl font-bold">
-            Historico de Transações
+            Histórico de Transações
           </Text>
         </View>
       </View>
@@ -62,13 +97,13 @@ export default function History() {
         <TextInput
           value={search}
           onChangeText={setSearch}
-          placeholder="Procurar transacções"
+          placeholder="Procurar transações"
           keyboardType="default"
           className="w-full border bg-white border-gray-300 rounded-lg px-4 py-4 text-lg mb-4"
         />
 
         <View className="flex-row justify-between">
-          {["All", "Confirmed", "Pending", "Rejected"].map((filter) => (
+          {["Todos", "Confirmada", "Pendente", "Rejeitada"].map((filter) => (
             <TouchableOpacity
               key={filter}
               onPress={() => setSelectedFilter(filter)}
@@ -94,7 +129,7 @@ export default function History() {
           <ActivityIndicator size="large" color="#000" />
         ) : filteredTransactions.length === 0 ? (
           <Text className="text-center text-gray-500 mt-10">
-            Não foram encontradas transacções
+            Não foram encontradas transações
           </Text>
         ) : (
           filteredTransactions.map((tx) => {
@@ -113,31 +148,46 @@ export default function History() {
                     </View>
                     <View>
                       <Text className="font-bold text-lg">
-                        {tx.description || tx.type}
+                        {tx.description || translateType(tx.type)}
                       </Text>
                       <Text className="text-gray-500">
-                        {isTopup ? "Top-up" : "Payment"}
+                        {translateType(tx.type)}
                       </Text>
                     </View>
                   </View>
-                  <View>
+                  <View className="items-end">
                     <Text
                       className={`font-bold text-2xl ${
                         isTopup ? "text-green-600" : "text-red-600"
                       }`}
                     >
-                      {isTopup
-                        ? `+${(tx.amount as number).toFixed(2)} MT`
-                        : `-${(tx.amount as number).toFixed(2)} MT`}
+                      {isTopup ? "+" : "-"}
+                      {Number(tx.amount).toFixed(2)} MT
                     </Text>
-                    <Text className="capitalize">{tx.status}</Text>
+                    <Text 
+                      className={`font-semibold text-sm ${
+                        tx.status.toLowerCase() === "confirmed"
+                          ? "text-green-600"
+                          : tx.status.toLowerCase() === "pending"
+                          ? "text-yellow-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {translateStatus(tx.status)}
+                    </Text>
                   </View>
                 </View>
 
                 <View className="flex-row justify-between items-center mt-2">
                   <Text className="text-gray-500"></Text>
                   <Text className="text-gray-500">
-                    {new Date(tx.created_at).toLocaleString()}
+                    {new Date(tx.created_at).toLocaleString("pt-BR", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </Text>
                 </View>
               </View>

@@ -1,10 +1,10 @@
 import { Link, useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
-import { ChevronLeft, Clock, Truck, MapPin, X, Plus, Minus } from 'lucide-react-native';
+import { ChevronLeft, Truck, MapPin, X, Plus, Minus } from 'lucide-react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { ScrollView, Text, TextInput, TouchableOpacity, View, Image, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-type OrderType = 'dine-in' | 'delivery';
+type OrderType = 'drive-thru' | 'delivery';
 
 interface CartItem {
   id: string;
@@ -26,8 +26,7 @@ export default function Cart() {
 
   const [items, setItems] = useState<CartItem[]>([]);
   const [cartLoaded, setCartLoaded] = useState(false);
-  const [selectedOrderType, setSelectedOrderType] = useState<OrderType>('dine-in');
-  const [selectedTable, setSelectedTable] = useState<number | null>(null);
+  const [selectedOrderType, setSelectedOrderType] = useState<OrderType>('drive-thru');
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [promoCode, setPromoCode] = useState('');
 
@@ -113,11 +112,6 @@ export default function Cart() {
       return;
     }
 
-    if (selectedOrderType === 'dine-in' && selectedTable === null) {
-      Alert.alert('Mesa não selecionada', 'Por favor, selecione uma mesa.');
-      return;
-    }
-
     if (selectedOrderType === 'delivery' && deliveryAddress.trim() === '') {
       Alert.alert('Endereço necessário', 'Por favor, insira o endereço de entrega.');
       return;
@@ -144,7 +138,6 @@ export default function Cart() {
 
     const paymentData = {
       orderType: selectedOrderType,
-      tableId: selectedTable?.toString() || '',
       deliveryAddress: deliveryAddress || '',
       subtotal: getSubtotal().toFixed(2),
       taxes: getTaxes().toFixed(2),
@@ -213,13 +206,13 @@ export default function Cart() {
           <Text className="text-lg font-semibold mb-2">Tipo de Pedido</Text>
           <View className="flex-row gap-4 justify-center">
             <TouchableOpacity
-              onPress={() => setSelectedOrderType('dine-in')}
+              onPress={() => setSelectedOrderType('drive-thru')}
               className={`flex-row gap-4 px-4 py-3 rounded-full ${
-                selectedOrderType === 'dine-in' ? 'bg-background' : 'border'
+                selectedOrderType === 'drive-thru' ? 'bg-background' : 'border'
               }`}
             >
-              <Clock size={20} color={selectedOrderType === 'dine-in' ? '#FFFFFF' : '#000000'} />
-              <Text className={selectedOrderType === 'dine-in' ? 'text-white' : ''}>Dine-In</Text>
+              <Truck size={20} color={selectedOrderType === 'drive-thru' ? '#FFFFFF' : '#000000'} />
+              <Text className={selectedOrderType === 'drive-thru' ? 'text-white' : ''}>Drive-Thru</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => setSelectedOrderType('delivery')}
@@ -232,27 +225,6 @@ export default function Cart() {
             </TouchableOpacity>
           </View>
         </View>
-        {selectedOrderType === 'dine-in' && (
-          <View className="bg-[#F0FDF4] p-6">
-            <Text className="text-lg font-semibold mb-2">Selecionar Mesa</Text>
-            <View className="flex-row flex-wrap gap-2 mb-2">
-              {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
-                <TouchableOpacity
-                  key={num}
-                  onPress={() => setSelectedTable(num)}
-                  className={`w-16 h-12 rounded-lg items-center justify-center border ${
-                    selectedTable === num ? 'bg-background border-background' : 'border-gray-300'
-                  }`}
-                >
-                  <Text className={`font-semibold ${selectedTable === num ? 'text-white' : ''}`}>
-                    {num}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-            <Text className="text-sm text-gray-600">Selecione a sua mesa preferida</Text>
-          </View>
-        )}
         {selectedOrderType === 'delivery' && (
           <View className="bg-blue-50 p-6">
             <Text className="text-lg font-semibold mb-4">Endereço de Entrega</Text>

@@ -1,6 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const API_BASE_URL = "http://162.245.188.169:8045/api/v1";
+
+// ==================== INTERFACES ====================
+
 export interface Category {
   id: string;
   name: string;
@@ -36,8 +39,101 @@ export interface Variant {
   is_active: boolean;
   created_at: string;
   updated_at: string;
-  product?: Product; // aparece quando buscamos um variant por ID
+  product?: Product;
 }
+
+export interface Campaign {
+  id: string;
+  title: string;
+  type: string;
+  description: string;
+  start_date: string;
+  end_date: string;
+  image_url: string;
+  send_notification: boolean;
+  channels: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PaymentCode {
+  amount: number;
+  code: string;
+  expires_at: string;
+  valid_for: string;
+}
+
+export interface OrderItem {
+  id: string;
+  order_id: string;
+  product_id: string;
+  variant_id: string | null;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+  product?: {
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    image_url: string;
+  };
+}
+
+export interface UserOrder {
+  id: string;
+  user_id: string;
+  table_id: string | null;
+  type: string;
+  status: string;
+  state: string;
+  total_amount: number;
+  delivery_address: string | null;
+  scheduled_time: string | null;
+  payment_method: string;
+  terminal: string;
+  created_at: string;
+  updated_at: string;
+  table?: {
+    id: string;
+    number: string;
+    capacity: number;
+    status: string;
+    created_at: string;
+    updated_at: string;
+  };
+  user?: {
+    id: string;
+    name: string;
+    phone: string;
+    role: string;
+    wallet_balance: number;
+    loyalty_points: number;
+    status: string;
+    created_at: string;
+    updated_at: string;
+  };
+  order_items?: OrderItem[];
+}
+
+export interface LoyaltyHistoryItem {
+  id: string;
+  rule_name: string;
+  rule_description: string;
+  reward_type: string;
+  applied_reward_value: number;
+  channel: string;
+  usage_date: string;
+}
+
+export interface LoyaltyStats {
+  total_usages: number;
+  total_discounts: number;
+  total_points: number;
+  last_usage_date: string;
+}
+
+// ==================== RESPONSE TYPES ====================
 
 export interface CategoriesResponse {
   status: string;
@@ -84,20 +180,6 @@ export interface VariantResponse {
   };
 }
 
-export interface Campaign {
-  id: string;
-  title: string;
-  type: string;
-  description: string;
-  start_date: string;
-  end_date: string;
-  image_url: string;
-  send_notification: boolean;
-  channels: string[];
-  created_at: string;
-  updated_at: string;
-}
-
 export interface ActiveCampaignsResponse {
   status: string;
   message: string;
@@ -106,6 +188,29 @@ export interface ActiveCampaignsResponse {
     data: Campaign[];
   };
 }
+
+export interface PaymentCodeResponse {
+  status: string;
+  message: string;
+  data: PaymentCode;
+}
+
+export interface UserOrdersResponse {
+  status: string;
+  message: string;
+  data: UserOrder[];
+}
+
+export interface LoyaltyHistoryResponse {
+  status: string;
+  message: string;
+  data: {
+    history: LoyaltyHistoryItem[];
+    stats: LoyaltyStats;
+  };
+}
+
+// ==================== SERVICE CLASS ====================
 
 class AdminService {
   private async makeAuthenticatedRequest<T>(
@@ -231,6 +336,39 @@ class AdminService {
   async getActiveCampaigns(): Promise<ActiveCampaignsResponse> {
     return this.makeAuthenticatedRequest<ActiveCampaignsResponse>(
       "/admin/campaigns/active",
+      { method: "GET" }
+    );
+  }
+
+  // 💳 Gerar código de pagamento
+  async generatePaymentCode(
+    amount: number,
+    validityMinutes: number = 30
+  ): Promise<PaymentCodeResponse> {
+    return this.makeAuthenticatedRequest<PaymentCodeResponse>(
+      "/admin/payment-code/generate",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          amount,
+          validity_minutes: validityMinutes,
+        }),
+      }
+    );
+  }
+
+  // 📦 Listar pedidos do usuário (live)
+  async getUserLiveOrders(): Promise<UserOrdersResponse> {
+    return this.makeAuthenticatedRequest<UserOrdersResponse>(
+      "/admin/orders/user-live",
+      { method: "GET" }
+    );
+  }
+
+  // 🎁 Obter histórico de fidelidade
+  async getLoyaltyHistory(): Promise<LoyaltyHistoryResponse> {
+    return this.makeAuthenticatedRequest<LoyaltyHistoryResponse>(
+      "/admin/loyalty/history",
       { method: "GET" }
     );
   }

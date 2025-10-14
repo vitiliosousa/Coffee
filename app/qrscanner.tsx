@@ -230,7 +230,7 @@ export default function QRScanner() {
             
             <View className="absolute top-20 bg-white/90 p-3 rounded-xl mx-6">
               <Text className="text-center text-sm text-gray-700">
-                💡 Dica: O QR Code deve conter o ID do pedido
+                O QR Code deve conter o ID do pedido
               </Text>
             </View>
 
@@ -311,7 +311,7 @@ export default function QRScanner() {
                   </Text>
                   {availableBalance < orderDetails.total_amount && (
                     <Text className="text-red-600 mt-2">
-                      ⚠️ Saldo insuficiente para este pedido
+                      Saldo insuficiente para este pedido
                     </Text>
                   )}
                 </View>
