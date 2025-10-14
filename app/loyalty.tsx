@@ -243,30 +243,7 @@ export default function Loyalty() {
           </View>
         </View>
 
-        {/* Estatísticas de Fidelidade */}
-        {loyaltyStats && (
-          <View className="px-6 pt-6">
-            <Text className="text-2xl font-bold text-black mb-4">Suas Estatísticas</Text>
-            <View className="flex-row gap-3 mb-6">
-              <View className="flex-1 bg-yellow-50 border border-yellow-200 rounded-xl p-4 items-center">
-                <TrendingUp size={24} color="#D97706" />
-                <Text className="text-2xl font-bold text-yellow-800 mt-2">
-                  {loyaltyStats.total_points}
-                </Text>
-                <Text className="text-xs text-gray-600 text-center">Total de Pontos</Text>
-              </View>
-              
-              <View className="flex-1 bg-green-50 border border-green-200 rounded-xl p-4 items-center">
-                <Gift size={24} color="#059669" />
-                <Text className="text-2xl font-bold text-green-800 mt-2">
-                  {loyaltyStats.total_usages}
-                </Text>
-                <Text className="text-xs text-gray-600 text-center">Recompensas Usadas</Text>
-              </View>
-            </View>
-          </View>
-        )}
-
+        
         {/* Campanhas Ativas */}
         <View className="p-6 flex-1 gap-6">
           <View className="flex-row items-center justify-between">

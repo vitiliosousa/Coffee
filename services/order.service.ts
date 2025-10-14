@@ -101,6 +101,7 @@ export interface CreateOrderRequest {
   delivery_address?: string;
   scheduled_time?: string;
   items: OrderItemRequest[];
+  total_amount: number;
 }
 
 export interface OrderItemRequest {

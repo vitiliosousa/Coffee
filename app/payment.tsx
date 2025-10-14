@@ -116,6 +116,11 @@ export default function Payment() {
         total: parseFloat(params.total as string) || 0,
         items
       });
+
+      console.log('=== PAYMENT: Dados recebidos do carrinho ===');
+      console.log('Items:', items.length);
+      console.log('Subtotal:', params.subtotal);
+      console.log('Total:', params.total);
     }
   }, [params.orderType, params.itemCount]);
 
@@ -140,17 +145,40 @@ export default function Payment() {
       return;
     }
 
+    // Validar valores antes de enviar
+    if (orderData.total <= 0) {
+      Alert.alert("Erro", "O valor total do pedido deve ser maior que zero.");
+      return;
+    }
+
     setProcessing(true);
 
     try {
       // Converter itens do carrinho para formato da API
-      const orderItems: OrderItemRequest[] = orderData.items.map(item => ({
-        product_id: item.productId,
-        variant_id: item.variantId || undefined,
-        quantity: item.quantity,
-        unit_price: item.finalPrice,
-        total_price: item.finalPrice * item.quantity
-      }));
+      const orderItems: OrderItemRequest[] = orderData.items.map(item => {
+        // Garantir que unit_price e total_price sejam maiores que zero
+        const unitPrice = item.finalPrice > 0 ? item.finalPrice : item.basePrice;
+        const totalPrice = unitPrice * item.quantity;
+
+        console.log(`=== PAYMENT: Item ${item.productName} ===`);
+        console.log('Product ID:', item.productId);
+        console.log('Variant ID:', item.variantId);
+        console.log('Quantity:', item.quantity);
+        console.log('Unit Price:', unitPrice);
+        console.log('Total Price:', totalPrice);
+
+        if (unitPrice <= 0 || totalPrice <= 0) {
+          throw new Error(`Preço inválido para o item: ${item.productName}`);
+        }
+
+        return {
+          product_id: item.productId,
+          variant_id: item.variantId || undefined,
+          quantity: item.quantity,
+          unit_price: unitPrice,
+          total_price: totalPrice
+        };
+      });
 
       // Preparar dados do pedido
       const createOrderRequest: CreateOrderRequest = {
@@ -158,14 +186,19 @@ export default function Payment() {
         payment_method: ApiPaymentMethod.WALLET,
         terminal: Terminal.APP,
         delivery_address: orderData.deliveryAddress && orderData.deliveryAddress !== '' ? orderData.deliveryAddress : undefined,
-        items: orderItems
+        items: orderItems,
+        total_amount: orderData.total,
       };
 
-      console.log("Enviando pedido:", JSON.stringify(createOrderRequest, null, 2));
+      console.log("=== PAYMENT: Enviando pedido para API ===");
+      console.log(JSON.stringify(createOrderRequest, null, 2));
 
       // Criar pedido na API
       const response = await orderService.createOrder(createOrderRequest);
       
+      console.log("=== PAYMENT: Resposta da API ===");
+      console.log(JSON.stringify(response, null, 2));
+
       const isSuccess = response.success === true || response.status === "success";
       
       if (isSuccess && response.data) {
@@ -194,11 +227,17 @@ export default function Payment() {
       }
 
     } catch (error: any) {
-      console.error("Erro ao criar pedido:", error);
-      Alert.alert(
-        "Erro no pagamento", 
-        error.message || "Não foi possível processar o pedido. Tente novamente."
-      );
+      console.error("=== PAYMENT: Erro ao criar pedido ===", error);
+      
+      let errorMessage = "Não foi possível processar o pedido. Tente novamente.";
+      
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+      
+      Alert.alert("Erro no pagamento", errorMessage);
     } finally {
       setProcessing(false);
     }
@@ -243,6 +282,19 @@ export default function Payment() {
             {orderData.total.toFixed(2)} MT
           </Text>
         </View>
+
+        {/* Lista de Itens (Debug) */}
+        {orderData.items.length > 0 && (
+          <View className="p-6 bg-gray-50">
+            <Text className="text-lg font-semibold mb-3">Itens do Pedido</Text>
+            {orderData.items.map((item, index) => (
+              <View key={index} className="flex-row justify-between mb-2">
+                <Text className="flex-1">{item.quantity}x {item.productName}</Text>
+                <Text className="font-semibold">{(item.finalPrice * item.quantity).toFixed(2)} MT</Text>
+              </View>
+            ))}
+          </View>
+        )}
 
         {/* Resumo dos valores */}
         <View className="p-6 m-6 gap-2 bg-gray-50 rounded-xl">
@@ -306,9 +358,9 @@ export default function Payment() {
       <View className="border-t border-gray-200 p-6 bg-white">
         <TouchableOpacity
           onPress={handlePayment}
-          disabled={processing || !hasSufficientBalance}
+          disabled={processing || !hasSufficientBalance || orderData.total <= 0}
           className={`w-full h-14 rounded-full items-center justify-center shadow-md ${
-            processing || !hasSufficientBalance
+            processing || !hasSufficientBalance || orderData.total <= 0
               ? 'bg-gray-400'
               : 'bg-background'
           }`}
