@@ -6,29 +6,33 @@ import {
   Alert,
   ActivityIndicator,
   Modal,
-  ScrollView,
+  TextInput,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { ChevronLeft, QrCode, CheckCircle, XCircle } from "lucide-react-native";
+import { ChevronLeft, Search, XCircle } from "lucide-react-native";
 import { CameraView, Camera } from "expo-camera";
 import { orderService, Order } from "@/services/order.service";
 import { authService } from "@/services/auth.service";
+import { adminService } from "@/services/admin.service";
 
 export default function QRScanner() {
   const router = useRouter();
+
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanned, setScanned] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [orderDetails, setOrderDetails] = useState<Order | null>(null);
-  const [showOrderModal, setShowOrderModal] = useState(false);
+  const [showManualInput, setShowManualInput] = useState(false);
+  const [manualOrderId, setManualOrderId] = useState("");
   const [availableBalance, setAvailableBalance] = useState<number>(0);
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [confirmationMessage, setConfirmationMessage] = useState("");
 
   useEffect(() => {
     const getCameraPermissions = async () => {
       const { status } = await Camera.requestCameraPermissionsAsync();
       setHasPermission(status === "granted");
     };
-
     getCameraPermissions();
     fetchBalance();
   }, []);
@@ -42,129 +46,92 @@ export default function QRScanner() {
     }
   };
 
-  const handleBarCodeScanned = async ({ data }: { data: string }) => {
-    if (scanned) return;
-    
-    setScanned(true);
+  const processOrderId = async (rawOrderId: string) => {
     setProcessing(true);
-
     try {
-      // O QR Code pode conter prefixo "orderId:" - remover se existir
-      let orderId = data.trim();
-      
-      console.log("===== QR CODE DEBUG =====");
-      console.log("1. Valor bruto escaneado:", data);
-      console.log("2. Após trim:", orderId);
-      
-      // Remover prefixo se existir
+      let orderId = rawOrderId.trim();
       if (orderId.startsWith("orderId:")) {
         orderId = orderId.replace("orderId:", "").trim();
-        console.log("3. Após remover prefixo:", orderId);
       }
-      
-      console.log("4. OrderID final a ser enviado:", orderId);
-      console.log("5. Comprimento do OrderID:", orderId.length);
 
-      // Validar se é um UUID válido
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const uuidRegex =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
       if (!uuidRegex.test(orderId)) {
-        console.log("6. ERRO: UUID inválido");
-        Alert.alert("QR Code Inválido", "O QR Code não contém um ID de pedido válido");
+        Alert.alert("ID Inválido", "O ID do pedido não é um UUID válido");
         setScanned(false);
         setProcessing(false);
         return;
       }
-      
-      console.log("6. UUID válido - Buscando pedido...");
 
-      // Buscar detalhes do pedido
-      const orderResponse = await orderService.getOrderById(orderId);
-      
-      console.log("7. Resposta da API:", JSON.stringify(orderResponse, null, 2));
-      
-      if (orderResponse.success && orderResponse.data) {
-        const order = orderResponse.data;
-        console.log("8. Pedido encontrado:", order.id);
-        setOrderDetails(order);
-        setShowOrderModal(true);
+      console.log("✅ Order ID escaneado:", orderId);
+
+      // Gerar código de pagamento
+      const paymentCodeResponse = await adminService.generatePaymentCode();
+      const paymentCode = paymentCodeResponse?.data?.code;
+      console.log("💳 Código de pagamento gerado:", paymentCode);
+
+      if (!paymentCode) {
+        Alert.alert("Erro", "Não foi possível gerar o código de pagamento");
+        setProcessing(false);
+        return;
+      }
+
+      // Executar transação usando o código de pagamento
+      const transactionResponse = await orderService.performOrderTransaction(
+        paymentCode,
+        orderId
+      );
+
+      console.log(
+        "🧾 Resposta da transação:",
+        JSON.stringify(transactionResponse, null, 2)
+      );
+
+      if (transactionResponse?.status === "success") {
+        const order = transactionResponse.data?.order;
+        const transaction = transactionResponse.data?.transaction;
+
+        // Mostrar modal de confirmação
+        setConfirmationMessage(
+          `Pedido ${order.id.slice(
+            -8
+          )} pago com sucesso!\n\nValor: ${order.total_amount} MT\nNovo saldo: ${transaction.current_balance} MT`
+        );
+        setShowConfirmationModal(true);
       } else {
-        console.log("8. ERRO: Pedido não encontrado na resposta");
-        Alert.alert("Erro", "Não foi possível encontrar o pedido");
+        Alert.alert(
+          "Erro",
+          transactionResponse?.message || "Falha ao processar a transação"
+        );
         setScanned(false);
       }
     } catch (error: any) {
-      console.error("===== ERRO AO PROCESSAR QR CODE =====");
-      console.error("Erro completo:", error);
-      console.error("Mensagem:", error.message);
-      console.error("Stack:", error.stack);
-      
-      let errorMessage = "QR Code inválido ou pedido não encontrado";
-      if (error.message) {
-        if (error.message.includes("record not found")) {
-          errorMessage = `Pedido não encontrado no sistema.\n\nVerifique:\n• O pedido foi criado?\n• O ID está correto?\n• O pedido não foi cancelado?`;
-        } else if (error.message.includes("network")) {
-          errorMessage = "Erro de conexão. Verifique sua internet.";
-        } else {
-          errorMessage = error.message;
-        }
-      }
-      
-      Alert.alert("Erro ao Processar QR Code", errorMessage, [
-        { text: "Tentar Novamente", onPress: handleRescan },
-        { text: "Voltar", style: "cancel" }
-      ]);
+      console.error("❌ Erro ao processar QR:", error);
+      Alert.alert(
+        "Erro",
+        error?.message || "Não foi possível processar o QR Code"
+      );
       setScanned(false);
     } finally {
       setProcessing(false);
-      console.log("===== FIM DO PROCESSAMENTO =====");
     }
   };
 
-  const handlePayment = async () => {
-    if (!orderDetails) return;
+  const handleBarCodeScanned = async ({ data }: { data: string }) => {
+    if (scanned) return;
+    setScanned(true);
+    await processOrderId(data);
+  };
 
-    if (availableBalance < orderDetails.total_amount) {
-      Alert.alert(
-        "Saldo Insuficiente",
-        `Você precisa de ${orderDetails.total_amount.toFixed(2)} MT mas tem apenas ${availableBalance.toFixed(2)} MT`
-      );
+  const handleManualSearch = async () => {
+    if (!manualOrderId.trim()) {
+      Alert.alert("Campo vazio", "Por favor, insira o ID do pedido");
       return;
     }
-
-    setProcessing(true);
-
-    try {
-      const response = await orderService.performOrderTransaction(orderDetails.id);
-
-      if (response.success) {
-        Alert.alert(
-          "Pagamento Realizado!",
-          `Pedido pago com sucesso. Valor: ${orderDetails.total_amount.toFixed(2)} MT`,
-          [
-            {
-              text: "OK",
-              onPress: () => {
-                setShowOrderModal(false);
-                router.push("/wallet");
-              },
-            },
-          ]
-        );
-      } else {
-        Alert.alert("Erro", response.message || "Falha ao processar pagamento");
-      }
-    } catch (error: any) {
-      console.error("Erro ao realizar pagamento:", error);
-      Alert.alert("Erro", error.message || "Não foi possível processar o pagamento");
-    } finally {
-      setProcessing(false);
-    }
-  };
-
-  const handleCancelScan = () => {
-    setScanned(false);
-    setShowOrderModal(false);
-    setOrderDetails(null);
+    setShowManualInput(false);
+    setScanned(true);
+    await processOrderId(manualOrderId.trim());
+    setManualOrderId("");
   };
 
   const handleRescan = () => {
@@ -189,7 +156,9 @@ export default function QRScanner() {
             <TouchableOpacity onPress={() => router.back()}>
               <ChevronLeft size={24} color="#FFFFFF" />
             </TouchableOpacity>
-            <Text className="text-white text-2xl font-bold">Escanear QR Code</Text>
+            <Text className="text-white text-2xl font-bold">
+              Escanear QR Code
+            </Text>
           </View>
         </View>
         <View className="flex-1 items-center justify-center p-6">
@@ -198,7 +167,8 @@ export default function QRScanner() {
             Permissão de Câmera Negada
           </Text>
           <Text className="text-gray-600 text-center mt-2">
-            Por favor, habilite a permissão da câmera nas configurações do aplicativo.
+            Por favor, habilite a permissão da câmera nas configurações do
+            aplicativo.
           </Text>
         </View>
       </View>
@@ -209,11 +179,18 @@ export default function QRScanner() {
     <View className="flex-1 bg-white">
       {/* Header */}
       <View className="bg-background p-6">
-        <View className="flex-row gap-4 items-center">
-          <TouchableOpacity onPress={() => router.back()}>
-            <ChevronLeft size={24} color="#FFFFFF" />
+        <View className="flex-row gap-4 items-center justify-between">
+          <View className="flex-row gap-4 items-center">
+            <TouchableOpacity onPress={() => router.back()}>
+              <ChevronLeft size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+            <Text className="text-white text-2xl font-bold">
+              Escanear QR Code
+            </Text>
+          </View>
+          <TouchableOpacity onPress={() => setShowManualInput(true)}>
+            <Search size={24} color="#FFFFFF" />
           </TouchableOpacity>
-          <Text className="text-white text-2xl font-bold">Escanear QR Code</Text>
         </View>
       </View>
 
@@ -222,125 +199,99 @@ export default function QRScanner() {
         <CameraView
           style={{ flex: 1 }}
           facing="back"
-          onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
+          onBarcodeScanned={
+            scanned || showConfirmationModal ? undefined : handleBarCodeScanned
+          }
         >
           <View className="flex-1 items-center justify-center">
-            {/* Overlay de scanner */}
             <View className="w-64 h-64 border-4 border-white rounded-3xl" />
-            
             <View className="absolute top-20 bg-white/90 p-3 rounded-xl mx-6">
               <Text className="text-center text-sm text-gray-700">
                 O QR Code deve conter o ID do pedido
               </Text>
             </View>
-
             <View className="absolute bottom-20 bg-white/90 p-4 rounded-xl mx-6">
               <Text className="text-center text-lg font-semibold">
-                {processing 
-                  ? "Processando..." 
-                  : scanned 
-                    ? "QR Code lido! Aguarde..." 
-                    : "Aponte para o QR Code do pedido"
-                }
+                {processing
+                  ? "Processando..."
+                  : scanned
+                  ? "QR Code lido! Aguarde..."
+                  : "Aponte para o QR Code do pedido"}
               </Text>
               <Text className="text-center text-gray-600 mt-2">
                 Saldo disponível: {availableBalance.toFixed(2)} MT
               </Text>
-              {scanned && !processing && !showOrderModal && (
-                <TouchableOpacity 
-                  onPress={handleRescan}
-                  className="mt-3 bg-background py-2 px-4 rounded-lg"
-                >
-                  <Text className="text-white text-center font-semibold">
-                    Tentar Novamente
-                  </Text>
-                </TouchableOpacity>
-              )}
             </View>
           </View>
         </CameraView>
       </View>
 
-      {/* Modal de Confirmação do Pedido */}
+      {/* Modal de input manual */}
       <Modal
-        visible={showOrderModal}
+        visible={showManualInput}
         transparent
-        animationType="slide"
-        onRequestClose={handleCancelScan}
+        animationType="fade"
+        onRequestClose={() => setShowManualInput(false)}
       >
-        <View className="flex-1 bg-black/50 justify-end">
-          <View className="bg-white rounded-t-3xl p-6">
-            <View className="items-center mb-4">
-              <View className="w-12 h-1 bg-gray-300 rounded-full mb-4" />
-              <QrCode size={48} color="#503B36" />
-              <Text className="text-2xl font-bold mt-4">Confirmar Pagamento</Text>
-            </View>
-
-            {orderDetails && (
-              <ScrollView className="max-h-96">
-                <View className="bg-gray-50 rounded-xl p-4 mb-4">
-                  <View className="flex-row justify-between mb-2">
-                    <Text className="text-gray-600">Pedido ID:</Text>
-                    <Text className="font-semibold">#{orderDetails.id.slice(-8)}</Text>
-                  </View>
-                  <View className="flex-row justify-between mb-2">
-                    <Text className="text-gray-600">Tipo:</Text>
-                    <Text className="font-semibold capitalize">{orderDetails.type}</Text>
-                  </View>
-                  <View className="flex-row justify-between mb-2">
-                    <Text className="text-gray-600">Status:</Text>
-                    <Text className="font-semibold capitalize">{orderDetails.status}</Text>
-                  </View>
-                  <View className="flex-row justify-between mb-2">
-                    <Text className="text-gray-600">Itens:</Text>
-                    <Text className="font-semibold">{orderDetails.order_items?.length || 0}</Text>
-                  </View>
-                  <View className="border-t border-gray-300 my-2" />
-                  <View className="flex-row justify-between">
-                    <Text className="text-xl font-bold">Total:</Text>
-                    <Text className="text-xl font-bold text-background">
-                      {orderDetails.total_amount.toFixed(2)} MT
-                    </Text>
-                  </View>
-                </View>
-
-                <View className="bg-blue-50 rounded-xl p-4 mb-4">
-                  <Text className="font-semibold mb-2">Seu Saldo:</Text>
-                  <Text className="text-2xl font-bold text-blue-600">
-                    {availableBalance.toFixed(2)} MT
-                  </Text>
-                  {availableBalance < orderDetails.total_amount && (
-                    <Text className="text-red-600 mt-2">
-                      Saldo insuficiente para este pedido
-                    </Text>
-                  )}
-                </View>
-              </ScrollView>
-            )}
-
-            <View className="gap-3 mt-4">
+        <View className="flex-1 justify-center items-center bg-black/50 p-6">
+          <View className="bg-white rounded-2xl w-full max-w-sm p-6">
+            <Text className="text-xl font-bold mb-4">Buscar Pedido</Text>
+            <Text className="text-gray-600 mb-4">
+              Insira o ID do pedido manualmente
+            </Text>
+            <TextInput
+              value={manualOrderId}
+              onChangeText={setManualOrderId}
+              placeholder="0698574d-5373-4a34-9dbb..."
+              className="border border-gray-300 rounded-lg px-4 py-3 text-base mb-4"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            <View className="flex-row gap-3">
               <TouchableOpacity
-                onPress={handlePayment}
-                disabled={!!(processing || (orderDetails && availableBalance < orderDetails.total_amount))}
-                className={`w-full h-14 rounded-full items-center justify-center ${
-                  processing || (orderDetails && availableBalance < orderDetails.total_amount)
-                    ? "bg-gray-400"
-                    : "bg-background"
-                }`}
+                onPress={() => setShowManualInput(false)}
+                className="flex-1 py-3 border border-gray-300 rounded-lg"
               >
-                <Text className="text-white font-bold text-lg">
-                  {processing ? "Processando..." : "Confirmar Pagamento"}
+                <Text className="text-center font-semibold">Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleManualSearch}
+                className="flex-1 py-3 bg-background rounded-lg"
+              >
+                <Text className="text-white text-center font-semibold">
+                  Buscar
                 </Text>
               </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={handleCancelScan}
-                disabled={processing}
-                className="w-full h-14 rounded-full items-center justify-center border-2 border-gray-300"
-              >
-                <Text className="text-gray-700 font-bold text-lg">Cancelar</Text>
-              </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal de confirmação */}
+      <Modal
+        visible={showConfirmationModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => {
+          setShowConfirmationModal(false);
+          router.back(); // fecha a tela de scanner
+        }}
+      >
+        <View className="flex-1 justify-center items-center bg-black/50 p-6">
+          <View className="bg-white rounded-2xl w-full max-w-sm p-6">
+            <Text className="text-xl font-bold mb-4">Pagamento Concluído</Text>
+            <Text className="text-gray-700 mb-6">{confirmationMessage}</Text>
+            <TouchableOpacity
+              onPress={() => {
+                setShowConfirmationModal(false);
+                router.back();
+              }}
+              className="bg-background py-3 rounded-lg"
+            >
+              <Text className="text-white text-center font-semibold">
+                Fechar
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>

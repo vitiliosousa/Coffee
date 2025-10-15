@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Modal, TextInput } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Modal } from "react-native";
 import { useRouter, Link } from "expo-router";
 import { ChevronLeft, CreditCard, Plus, RotateCcw, Banknote, Smartphone, QrCode, Copy, X, Clock } from "lucide-react-native";
 import { authService, AccountInfoResponse, WalletTransactionsResponse, Transaction } from "@/services/auth.service";
@@ -14,8 +14,6 @@ export default function Wallet() {
   const [showPaymentIdModal, setShowPaymentIdModal] = useState(false);
   const [paymentCode, setPaymentCode] = useState<PaymentCode | null>(null);
   const [generatingCode, setGeneratingCode] = useState(false);
-  const [amount, setAmount] = useState("");
-  const [validityMinutes, setValidityMinutes] = useState("30");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -39,25 +37,14 @@ export default function Wallet() {
   }, []);
 
   const generatePaymentCode = async () => {
-    if (!amount || parseFloat(amount) <= 0) {
-      Alert.alert("Valor inválido", "Por favor, insira um valor válido para receber.");
-      return;
-    }
-
-    const minutes = parseInt(validityMinutes) || 30;
-    if (minutes < 1 || minutes > 1440) {
-      Alert.alert("Validade inválida", "A validade deve ser entre 1 e 1440 minutos (24 horas).");
-      return;
-    }
-
     setGeneratingCode(true);
     try {
-      const response = await adminService.generatePaymentCode(parseFloat(amount), minutes);
+      const response = await adminService.generatePaymentCode();
       setPaymentCode(response.data);
     } catch (error: any) {
       console.error("Erro ao gerar código:", error);
       Alert.alert(
-        "Erro", 
+        "Erro",
         error.message || "Não foi possível gerar o código de pagamento. Tente novamente."
       );
     } finally {
@@ -75,8 +62,6 @@ export default function Wallet() {
   const handleOpenModal = () => {
     setShowPaymentIdModal(true);
     setPaymentCode(null);
-    setAmount("");
-    setValidityMinutes("30");
   };
 
   const formatExpiryTime = (expiresAt: string) => {
@@ -84,10 +69,10 @@ export default function Wallet() {
     const now = new Date();
     const diffMs = expiryDate.getTime() - now.getTime();
     const diffMins = Math.floor(diffMs / 60000);
-    
+
     if (diffMins < 0) return "Expirado";
     if (diffMins < 60) return `${diffMins} minutos`;
-    
+
     const hours = Math.floor(diffMins / 60);
     const mins = diffMins % 60;
     return `${hours}h ${mins}min`;
@@ -129,31 +114,9 @@ export default function Wallet() {
             {/* Conteúdo do Modal */}
             {!paymentCode ? (
               <View className="gap-4">
-                <View>
-                  <Text className="text-gray-700 font-semibold mb-2">Valor a Receber (MT)</Text>
-                  <TextInput
-                    value={amount}
-                    onChangeText={setAmount}
-                    placeholder="0.00"
-                    keyboardType="decimal-pad"
-                    className="border border-gray-300 rounded-lg px-4 py-3 text-lg"
-                  />
-                </View>
-
-                <View>
-                  <Text className="text-gray-700 font-semibold mb-2">Validade (minutos)</Text>
-                  <TextInput
-                    value={validityMinutes}
-                    onChangeText={setValidityMinutes}
-                    placeholder="30"
-                    keyboardType="number-pad"
-                    className="border border-gray-300 rounded-lg px-4 py-3 text-lg"
-                  />
-                  <Text className="text-xs text-gray-500 mt-1">
-                    Mínimo: 1 minuto | Máximo: 1440 minutos (24h)
-                  </Text>
-                </View>
-
+                <Text className="text-center text-gray-600 mb-4">
+                  Clique no botão abaixo para gerar um código de pagamento válido por 5 minutos
+                </Text>
                 <TouchableOpacity
                   onPress={generatePaymentCode}
                   disabled={generatingCode}
@@ -180,12 +143,6 @@ export default function Wallet() {
                       {paymentCode.code}
                     </Text>
                     
-                    <View className="flex-row items-center gap-2">
-                      <Text className="text-2xl font-bold text-green-600">
-                        {paymentCode.amount.toFixed(2)} MT
-                      </Text>
-                    </View>
-
                     <View className="flex-row items-center gap-1">
                       <Clock size={14} color="#6B7280" />
                       <Text className="text-xs text-gray-500">
@@ -203,15 +160,8 @@ export default function Wallet() {
                   </TouchableOpacity>
                 </View>
 
-                <Text className="text-center text-xs text-gray-500 px-4">
-                  O pagador deve usar este código para efetuar o pagamento do valor especificado.
-                </Text>
-
                 <TouchableOpacity
-                  onPress={() => {
-                    setPaymentCode(null);
-                    setAmount("");
-                  }}
+                  onPress={() => setPaymentCode(null)}
                   className="w-full bg-gray-200 py-3 rounded-xl"
                 >
                   <Text className="text-center font-semibold text-gray-700">

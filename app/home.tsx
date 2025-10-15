@@ -221,7 +221,7 @@ export default function Home() {
         <View className="flex-row items-center">
           <View className="flex-1" />
           <View className="flex-1 items-end">
-            <Link href="/create-account" className="text-gray-400">
+            <Link href="/notifications" className="text-gray-400">
               <Bell size={20} color="#503B36" />
             </Link>
           </View>

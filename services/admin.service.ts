@@ -57,7 +57,6 @@ export interface Campaign {
 }
 
 export interface PaymentCode {
-  amount: number;
   code: string;
   expires_at: string;
   valid_for: string;
@@ -262,21 +261,6 @@ class AdminService {
     );
   }
 
-  // ✅ Criar produto
-  async createProduct(product: {
-    category_id: string;
-    name: string;
-    description?: string;
-    price: number;
-    image_url?: string;
-    display_order?: number;
-  }): Promise<ProductResponse> {
-    return this.makeAuthenticatedRequest<ProductResponse>("/admin/products", {
-      method: "POST",
-      body: JSON.stringify(product),
-    });
-  }
-
   // 🔎 Pesquisar produtos
   async searchProducts(query: string, limit = 10): Promise<ProductsResponse> {
     return this.makeAuthenticatedRequest<ProductsResponse>(
@@ -284,34 +268,6 @@ class AdminService {
       {
         method: "POST",
         body: JSON.stringify({ query, limit }),
-      }
-    );
-  }
-
-  // ✅ Ativar/Desativar produto
-  async toggleProductAvailability(
-    productId: string,
-    isAvailable: boolean
-  ): Promise<ProductResponse> {
-    return this.makeAuthenticatedRequest<ProductResponse>(
-      `/admin/products/${productId}/toggle-availability`,
-      {
-        method: "PUT",
-        body: JSON.stringify({ is_available: isAvailable }),
-      }
-    );
-  }
-
-  // ➕ Criar variação
-  async createVariant(
-    productId: string,
-    variant: { name: string; price_adjustment: number; is_default: boolean }
-  ): Promise<VariantResponse> {
-    return this.makeAuthenticatedRequest<VariantResponse>(
-      `/admin/products/${productId}/variants`,
-      {
-        method: "POST",
-        body: JSON.stringify(variant),
       }
     );
   }
@@ -340,18 +296,14 @@ class AdminService {
     );
   }
 
-  // 💳 Gerar código de pagamento
-  async generatePaymentCode(
-    amount: number,
-    validityMinutes: number = 30
-  ): Promise<PaymentCodeResponse> {
+  // 💳 Gerar código de pagamento (5 minutos padrão, sem valor)
+  async generatePaymentCode(): Promise<PaymentCodeResponse> {
     return this.makeAuthenticatedRequest<PaymentCodeResponse>(
       "/admin/payment-code/generate",
       {
         method: "POST",
         body: JSON.stringify({
-          amount,
-          validity_minutes: validityMinutes,
+          validity_minutes: 5, // ⏱️ Tempo fixo de 5 minutos
         }),
       }
     );

@@ -2,11 +2,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const API_BASE_URL = "http://162.245.188.169:8045/api/v1";
 
-// Enums para os tipos e status
 export enum OrderType {
   DRIVE_THRU = "drive_thru",
   DELIVERY = "delivery",
-  DINE_IN = "dine_in",
 }
 
 export enum OrderStatus {
@@ -35,7 +33,6 @@ export enum Terminal {
   APP = "APP",
 }
 
-// Interfaces principais
 export interface OrderItem {
   id: string;
   order_id: string;
@@ -73,152 +70,17 @@ export interface Order {
   order_items?: OrderItem[];
 }
 
-export interface MonthlySales {
-  month: string;
-  total_sales: number;
-  total_orders: number;
-}
-
 export interface Transaction {
   id: string;
   amount: number;
   type: string;
   description: string;
   created_at: string;
-}
-
-export interface QRCode {
-  order_id: string;
-  qr_code: string;
-}
-
-// Interfaces de Request
-export interface CreateOrderRequest {
-  table_id?: string;
-  type: OrderType;
-  payment_method: PaymentMethod;
-  terminal: Terminal;
-  delivery_address?: string;
-  scheduled_time?: string;
-  items: OrderItemRequest[];
-  // total_amount é calculado automaticamente pela API
-}
-
-export interface OrderItemRequest {
-  product_id: string;
-  variant_id?: string;
-  quantity: number;
-  unit_price: number;
-  total_price: number;
-}
-
-export interface SearchOrdersRequest {
-  id?: string;
-  user_id?: string;
-  status?: OrderStatus;
-  type?: OrderType;
-  client_name?: string;
-}
-
-export interface UpdateStatusRequest {
-  order_id: string;
-  status: OrderStatus;
-}
-
-export interface UpdateStateRequest {
-  order_id: string;
-  state: OrderState;
-}
-
-export interface TransactionRequest {
-  order_id: string;
-}
-
-// Interfaces de Response
-export interface CreateOrderResponse {
-  success?: boolean;
-  status?: string;
-  message: string;
-  data: {
-    id: string;
-    user_id: string;
-    table_id?: string;
-    type: OrderType;
-    status: OrderStatus;
-    state: OrderState;
-    total_amount: number;
-    delivery_address?: string;
-    scheduled_time?: string;
-    payment_method: PaymentMethod;
-    terminal: Terminal;
-    created_at: string;
-    updated_at: string;
-    order_items: OrderItem[];
-  };
-}
-
-export interface SearchOrdersResponse {
-  success: boolean;
-  message: string;
-  data: Order[];
-}
-
-export interface OrderTotalResponse {
-  success: boolean;
-  message: string;
-  data: number;
-}
-
-export interface OrderResponse {
-  success: boolean;
-  message: string;
-  data: Order;
-}
-
-export interface OrderItemsResponse {
-  success: boolean;
-  message: string;
-  data: OrderItem[];
-}
-
-export interface AddItemResponse {
-  success: boolean;
-  message: string;
-  data: OrderItem;
-}
-
-export interface RemoveItemResponse {
-  success: boolean;
-  message: string;
-  data: {
-    id: string;
-    total_amount: number;
-    updated_at: string;
-  };
-}
-
-export interface UpdateStatusResponse {
-  success: boolean;
-  message: string;
-  data: {
-    id: string;
-    status: OrderStatus;
-    updated_at: string;
-  };
-}
-
-export interface UpdateStateResponse {
-  success: boolean;
-  message: string;
-  data: {
-    id: string;
-    state: OrderState;
-    updated_at: string;
-  };
+  current_balance?: number;
 }
 
 export interface TransactionResponse {
-  success: boolean;
+  status: string;
   message: string;
   data: {
     order: Order;
@@ -226,16 +88,8 @@ export interface TransactionResponse {
   };
 }
 
-export interface QRCodeResponse {
-  success: boolean;
-  message: string;
-  data: QRCode;
-}
-
-export interface MonthlySalesResponse {
-  success: boolean;
-  message: string;
-  data: MonthlySales[];
+export interface TransactionRequest {
+  order_id: string;
 }
 
 class OrderService {
@@ -252,25 +106,61 @@ class OrderService {
       ...(options.headers || {}),
     };
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const url = `${API_BASE_URL}${endpoint}`;
+    console.log(`=== REQUEST: ${options.method || "GET"} ${url} ===`);
+    if (options.body) console.log("Body:", options.body);
+
+    const response = await fetch(url, {
       ...options,
       headers,
     });
 
+    console.log(`=== RESPONSE: ${response.status} ${response.statusText} ===`);
     const data = await response.json();
+    console.log("Response data:", JSON.stringify(data, null, 2));
 
     if (!response.ok) {
-      throw new Error(data.message || "Erro ao processar requisição");
+      const message = data.message || "Erro ao processar requisição";
+      throw new Error(message);
     }
 
     return data;
   }
 
-  // 1️⃣ Criar pedido
-  async createOrder(
-    orderData: CreateOrderRequest
-  ): Promise<CreateOrderResponse> {
-    // Limpar campos undefined antes de enviar
+  // 🔹 Realizar transação do pedido via QR code (usando payment code)
+  async performOrderTransaction(
+    paymentCode: string,
+    orderId: string
+  ): Promise<TransactionResponse> {
+    try {
+      console.log("=== ORDER SERVICE: Iniciando transação ===");
+      console.log("Payment Code:", paymentCode);
+      console.log("Order ID:", orderId);
+
+      const payload = { order_id: orderId };
+      console.log("Payload:", JSON.stringify(payload, null, 2));
+
+      const response = await this.makeAuthenticatedRequest<TransactionResponse>(
+        `/users/orders/perform-transaction/${paymentCode}`,
+        {
+          method: "POST",
+          body: JSON.stringify(payload),
+        }
+      );
+
+      console.log("=== ORDER SERVICE: Transação concluída ===");
+      console.log("Resposta:", JSON.stringify(response, null, 2));
+
+      return response;
+    } catch (error: any) {
+      console.error("=== ORDER SERVICE: Erro na transação ===");
+      console.error("Erro completo:", error);
+      throw error;
+    }
+  }
+
+  // 🔹 Criar pedido
+  async createOrder(orderData: any) {
     const cleanedData = {
       type: orderData.type,
       payment_method: orderData.payment_method,
@@ -278,7 +168,7 @@ class OrderService {
       ...(orderData.table_id && { table_id: orderData.table_id }),
       ...(orderData.delivery_address && { delivery_address: orderData.delivery_address }),
       ...(orderData.scheduled_time && { scheduled_time: orderData.scheduled_time }),
-      items: orderData.items.map((item) => ({
+      items: orderData.items.map((item: any) => ({
         product_id: item.product_id,
         quantity: item.quantity,
         unit_price: item.unit_price,
@@ -287,161 +177,20 @@ class OrderService {
       })),
     };
 
-    console.log("=== ORDER SERVICE: Dados limpos para enviar ===");
+    console.log("=== Criando pedido ===");
     console.log(JSON.stringify(cleanedData, null, 2));
 
-    return this.makeAuthenticatedRequest<CreateOrderResponse>("/users/orders", {
+    return this.makeAuthenticatedRequest("/users/orders", {
       method: "POST",
       body: JSON.stringify(cleanedData),
     });
   }
 
-  // 2️⃣ Buscar pedidos
-  async searchOrders(
-    filters: SearchOrdersRequest
-  ): Promise<SearchOrdersResponse> {
-    const queryParams = new URLSearchParams();
-
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        queryParams.append(key, value.toString());
-      }
-    });
-
-    const queryString = queryParams.toString();
-    const endpoint = queryString
-      ? `/users/orders?${queryString}`
-      : "/users/orders";
-
-    return this.makeAuthenticatedRequest<SearchOrdersResponse>(endpoint, {
+  // 🔹 Buscar pedido por ID
+  async getOrderById(orderId: string) {
+    return this.makeAuthenticatedRequest(`/users/orders/${orderId}`, {
       method: "GET",
     });
-  }
-
-  // 3️⃣ Obter total do pedido
-  async getOrderTotal(orderId: string): Promise<OrderTotalResponse> {
-    return this.makeAuthenticatedRequest<OrderTotalResponse>(
-      `/users/orders/total/${orderId}`,
-      { method: "GET" }
-    );
-  }
-
-  // 4️⃣ Obter pedido por ID
-  async getOrderById(orderId: string): Promise<OrderResponse> {
-    return this.makeAuthenticatedRequest<OrderResponse>(
-      `/users/orders/${orderId}`,
-      { method: "GET" }
-    );
-  }
-
-  // 5️⃣ Obter itens do pedido
-  async getOrderItems(orderId: string): Promise<OrderItemsResponse> {
-    return this.makeAuthenticatedRequest<OrderItemsResponse>(
-      `/users/orders/${orderId}/items`,
-      { method: "GET" }
-    );
-  }
-
-  // 6️⃣ Criar pedido em andamento
-  async createOngoingOrder(
-    orderData: CreateOrderRequest
-  ): Promise<CreateOrderResponse> {
-    return this.makeAuthenticatedRequest<CreateOrderResponse>(
-      "/users/orders/ongoing",
-      {
-        method: "POST",
-        body: JSON.stringify(orderData),
-      }
-    );
-  }
-
-  // 7️⃣ Adicionar item ao pedido em andamento
-  async addItemToOrder(
-    orderId: string,
-    item: OrderItemRequest
-  ): Promise<AddItemResponse> {
-    return this.makeAuthenticatedRequest<AddItemResponse>(
-      `/users/orders/${orderId}/items`,
-      {
-        method: "POST",
-        body: JSON.stringify(item),
-      }
-    );
-  }
-
-  // 8️⃣ Remover item do pedido em andamento
-  async removeItemFromOrder(
-    orderId: string,
-    itemId: string
-  ): Promise<RemoveItemResponse> {
-    return this.makeAuthenticatedRequest<RemoveItemResponse>(
-      `/users/orders/${orderId}/items/${itemId}/remove`,
-      { method: "DELETE" }
-    );
-  }
-
-  // 9️⃣ Atualizar status do pedido
-  async updateOrderStatus(
-    updateData: UpdateStatusRequest
-  ): Promise<UpdateStatusResponse> {
-    return this.makeAuthenticatedRequest<UpdateStatusResponse>(
-      "/users/orders/update-status",
-      {
-        method: "POST",
-        body: JSON.stringify(updateData),
-      }
-    );
-  }
-
-  // 🔟 Atualizar estado do pedido
-  async updateOrderState(
-    updateData: UpdateStateRequest
-  ): Promise<UpdateStateResponse> {
-    return this.makeAuthenticatedRequest<UpdateStateResponse>(
-      "/users/orders/update-state",
-      {
-        method: "POST",
-        body: JSON.stringify(updateData),
-      }
-    );
-  }
-
-  // 1️⃣1️⃣ Realizar transação do pedido via QR Code
-  async performOrderTransaction(orderId: string): Promise<TransactionResponse> {
-    // Buscar userId do token/storage
-    const account = await this.getAccountInfo();
-    const userId = account.data.account.id;
-
-    return this.makeAuthenticatedRequest<TransactionResponse>(
-      `/users/orders/perform-transaction/${userId}`,
-      {
-        method: "POST",
-        body: JSON.stringify({ order_id: orderId }),
-      }
-    );
-  }
-
-  // Helper para obter informações da conta
-  private async getAccountInfo() {
-    return this.makeAuthenticatedRequest<any>("/users/account", {
-      method: "GET",
-    });
-  }
-
-  // 1️⃣2️⃣ Obter QR Code do pedido
-  async getOrderQRCode(orderId: string): Promise<QRCodeResponse> {
-    return this.makeAuthenticatedRequest<QRCodeResponse>(
-      `/users/orders/${orderId}/qrcode`,
-      { method: "GET" }
-    );
-  }
-
-  // 1️⃣3️⃣ Obter vendas mensais
-  async getMonthlySales(): Promise<MonthlySalesResponse> {
-    return this.makeAuthenticatedRequest<MonthlySalesResponse>(
-      "/users/orders/monthly-sales",
-      { method: "GET" }
-    );
   }
 }
 
