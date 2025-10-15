@@ -91,23 +91,23 @@ export default function MyOrders() {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'pending':
-        return { bg: 'bg-yellow-100', text: 'text-yellow-800', icon: Clock };
+        return { bg: 'bg-yellow-100', text: 'text-yellow-600', icon: Clock };
       case 'preparing':
-        return { bg: 'bg-blue-100', text: 'text-blue-800', icon: Package };
+        return { bg: 'bg-blue-100', text: 'text-blue-600', icon: Package };
       case 'ready':
-        return { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircle };
+        return { bg: 'bg-green-100', text: 'text-green-600', icon: CheckCircle };
       case 'out_for_delivery':
       case 'out-for-delivery':
-        return { bg: 'bg-purple-100', text: 'text-purple-800', icon: Truck };
+        return { bg: 'bg-purple-100', text: 'text-purple-600', icon: Truck };
       case 'delivered':
-        return { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircle };
+        return { bg: 'bg-green-100', text: 'text-green-600', icon: CheckCircle };
       case 'completed':
-        return { bg: 'bg-gray-100', text: 'text-gray-800', icon: CheckCircle };
+        return { bg: 'bg-gray-100', text: 'text-gray-600', icon: CheckCircle };
       case 'cancelled':
       case 'canceled':
-        return { bg: 'bg-red-100', text: 'text-red-800', icon: XCircle };
+        return { bg: 'bg-red-100', text: 'text-red-600', icon: XCircle };
       default:
-        return { bg: 'bg-gray-100', text: 'text-gray-800', icon: Clock };
+        return { bg: 'bg-gray-100', text: 'text-gray-600', icon: Clock };
     }
   };
 

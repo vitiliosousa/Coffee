@@ -180,14 +180,13 @@ export default function Payment() {
         };
       });
 
-      // Preparar dados do pedido
-      const createOrderRequest: CreateOrderRequest = {
+      // Preparar dados do pedido (SEM total_amount - API calcula automaticamente)
+      const createOrderRequest = {
         type: mapOrderType(orderData.orderType),
         payment_method: ApiPaymentMethod.WALLET,
         terminal: Terminal.APP,
         delivery_address: orderData.deliveryAddress && orderData.deliveryAddress !== '' ? orderData.deliveryAddress : undefined,
-        items: orderItems,
-        total_amount: orderData.total,
+        items: orderItems
       };
 
       console.log("=== PAYMENT: Enviando pedido para API ===");

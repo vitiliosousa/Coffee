@@ -101,7 +101,7 @@ export interface CreateOrderRequest {
   delivery_address?: string;
   scheduled_time?: string;
   items: OrderItemRequest[];
-  total_amount: number;
+  // total_amount é calculado automaticamente pela API
 }
 
 export interface OrderItemRequest {
@@ -272,15 +272,23 @@ class OrderService {
   ): Promise<CreateOrderResponse> {
     // Limpar campos undefined antes de enviar
     const cleanedData = {
-      ...orderData,
-      table_id: orderData.table_id || undefined,
-      delivery_address: orderData.delivery_address || undefined,
-      scheduled_time: orderData.scheduled_time || undefined,
+      type: orderData.type,
+      payment_method: orderData.payment_method,
+      terminal: orderData.terminal,
+      ...(orderData.table_id && { table_id: orderData.table_id }),
+      ...(orderData.delivery_address && { delivery_address: orderData.delivery_address }),
+      ...(orderData.scheduled_time && { scheduled_time: orderData.scheduled_time }),
       items: orderData.items.map((item) => ({
-        ...item,
-        variant_id: item.variant_id || undefined,
+        product_id: item.product_id,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        total_price: item.total_price,
+        ...(item.variant_id && { variant_id: item.variant_id }),
       })),
     };
+
+    console.log("=== ORDER SERVICE: Dados limpos para enviar ===");
+    console.log(JSON.stringify(cleanedData, null, 2));
 
     return this.makeAuthenticatedRequest<CreateOrderResponse>("/users/orders", {
       method: "POST",
