@@ -184,7 +184,7 @@ export default function Wallet() {
         </View>
       </View>
 
-      <ScrollView className="flex-1 p-6">
+      <ScrollView className="flex-1 p-6 pb-10">
         {/* Card do Saldo */}
         <View className="bg-background rounded-xl p-6 gap-6">
           <View className="flex-row items-center justify-between">

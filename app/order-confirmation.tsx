@@ -169,35 +169,10 @@ export default function OrderConfirmation() {
           </View>
         </View>
 
-        {/* Tempo Estimado */}
-        <View className="bg-blue-50 rounded-xl p-6 mb-6">
-          <View className="flex-row items-center gap-4">
-            <Clock size={32} color="#3B82F6" />
-            <View>
-              <Text className="text-xl font-semibold">Tempo estimado</Text>
-              <Text className="text-2xl font-bold text-blue-600">{getEstimatedTime()}</Text>
-              <Text className="text-gray-600">
-                {orderData.orderType === 'delivery' 
-                  ? 'Incluindo tempo de entrega' 
-                  : 'Para ficar pronto'}
-              </Text>
-            </View>
-          </View>
-        </View>
 
-        {/* Botões de Ação */}
-        <View className="gap-4">
-          <TouchableOpacity
-            onPress={handleViewOrderDetails}
-            className="border border-background rounded-xl p-4 flex-row items-center justify-center gap-2"
-          >
-            <Receipt size={20} color="#503B36" />
-            <Text className="text-background font-bold text-lg">Ver Detalhes do Pedido</Text>
-          </TouchableOpacity>
-        </View>
 
         {/* Informações Adicionais */}
-        <View className="bg-yellow-50 rounded-xl p-4 mt-6">
+        <View className="bg-yellow-50 rounded-xl p-4 mt-6 mb-20">
           <Text className="text-yellow-800 font-semibold mb-2">Informações importantes:</Text>
           <Text className="text-yellow-700 text-sm leading-5">
             • Você receberá uma notificação quando seu pedido estiver pronto{'\n'}
@@ -211,10 +186,10 @@ export default function OrderConfirmation() {
       <View className="border-t border-gray-200 p-6 bg-white">
         <TouchableOpacity
           onPress={() => router.push("/home")}
-          className="w-full h-14 rounded-full bg-gray-100 items-center justify-center shadow-md flex-row gap-2"
+          className="w-full h-14 rounded-full bg-background items-center justify-center shadow-md flex-row gap-2"
         >
-          <Home size={20} color="#503B36" />
-          <Text className="text-background font-bold text-lg">Voltar ao Menu</Text>
+          <Home size={20} color="#FFFFFF" />
+          <Text className="text-white font-bold text-lg">Voltar ao Menu</Text>
         </TouchableOpacity>
       </View>
     </View>
