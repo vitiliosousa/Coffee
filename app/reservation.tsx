@@ -1,5 +1,4 @@
 import CalendarPicker from "@/components/CalendarPicker";
-import DotsWhite from "@/components/DotsWhite";
 import { reservationService } from "@/services/reservation.service";
 import { Link, useRouter } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
@@ -128,9 +127,6 @@ export default function Reservation() {
     <View className="flex-1 bg-white">
       {/* HEADER FIXO */}
       <View className="bg-background p-6 gap-6">
-        <View className="items-center">
-          <DotsWhite />
-        </View>
         <View className="flex-row gap-4 items-center">
           <Link href={"/home"}>
             <ChevronLeft size={24} color={"#FFFFFF"} />
@@ -144,7 +140,7 @@ export default function Reservation() {
         {/* Select Date */}
         <Text className="text-lg font-semibold mb-2">Selecione a Data</Text>
         <CalendarPicker
-          initialDate={getTodayDateObject()} // Passa a data de hoje como inicial
+          initialDate={getTodayDateObject()} 
           onDateChange={(date) =>
             setSelectedDate(date.toISOString().split("T")[0])
           }

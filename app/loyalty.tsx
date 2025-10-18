@@ -9,7 +9,6 @@ import {
 import { useState, useEffect } from "react";
 import { useRouter, Link } from "expo-router";
 import { ChevronLeft, Gift, Star, Calendar, Award, TrendingUp, Percent } from "lucide-react-native";
-import DotsWhite from "@/components/DotsWhite";
 import { authService } from "@/services/auth.service";
 import { adminService, Campaign, LoyaltyHistoryItem, LoyaltyStats } from "@/services/admin.service";
 
@@ -212,9 +211,6 @@ export default function Loyalty() {
     <View className="flex-1 bg-white">
       {/* HEADER FIXO */}
       <View className="bg-background p-6 gap-6">
-        <View className="items-center">
-          <DotsWhite />
-        </View>
         <View className="flex-row gap-4 items-center">
           <Link href={"/home"}>
             <ChevronLeft size={24} color={"#FFFFFF"} />
