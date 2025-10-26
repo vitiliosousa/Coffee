@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const API_BASE_URL = "http://162.245.188.169:8045/api/v1";
+const API_BASE_URL = "https://eticketsmz.site/brewhouse/api/v1";
 
 // ==================== INTERFACES ====================
 

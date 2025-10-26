@@ -6,6 +6,10 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
 import { useRouter, Link } from "expo-router";
 import { Coffee, Eye, EyeOff } from "lucide-react-native";
@@ -35,7 +39,6 @@ export default function Login() {
         password: formData.password,
       });
       Alert.alert("Sucesso", `Bem-vindo, ${response.data.user.name}!`);
-
       router.replace("/home?fromLogin=true");
     } catch (error: any) {
       Alert.alert("Erro no login", error.message || "Não foi possível logar");
@@ -45,107 +48,123 @@ export default function Login() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-fundo p-6">
-      <View className="flex-row items-center mt-12">
-        <View className="w-16 h-16 bg-fundoescuro rounded-2xl items-center justify-center">
-          <Coffee size={30} color="#503B36" />
-        </View>
-        <View className="ml-3">
-          <Text className="text-4xl font-bold text-background">
-            Bem vindo de volta!
-          </Text>
-          <Text className="text-gray-600 text-xl">Bom ver você de novo</Text>
-        </View>
-      </View>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      className="flex-1 bg-fundo"
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          className="flex-1 p-6"
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ flexGrow: 1 }}
+        >
+          <View className="flex-row items-center mt-12">
+            <View className="w-16 h-16 bg-fundoescuro rounded-2xl items-center justify-center">
+              <Coffee size={30} color="#503B36" />
+            </View>
+            <View className="ml-3">
+              <Text className="text-4xl font-bold text-background">
+                Bem-vindo de volta!
+              </Text>
+              <Text className="text-gray-600 text-xl">Bom ver você de novo</Text>
+            </View>
+          </View>
 
-      <View className="mt-[60px] gap-3">
-        <Text className="text-3xl font-bold text-background">
-          Entrar na sua conta
-        </Text>
-        <Text className="text-gray-600 text-xl">
-          Acesse a sua comunidade de café
-        </Text>
-      </View>
+          <View className="mt-[60px] gap-3">
+            <Text className="text-3xl font-bold text-background">
+              Entrar na sua conta
+            </Text>
+            <Text className="text-gray-600 text-xl">
+              Acesse a sua comunidade de café
+            </Text>
+          </View>
 
-      <View className="mt-10 gap-6">
-        <View>
-          <Text className="text-background mb-2 font-semibold">
-            Endereço de Email
-          </Text>
-          <TextInput
-            placeholder="Insira o seu email"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={formData.email}
-            onChangeText={(text) => setFormData({ ...formData, email: text })}
-            className="w-full border bg-white border-fundoescuro rounded-lg px-4 py-4 text-lg"
-          />
-        </View>
+          <View className="mt-10 gap-6 flex-1">
+            <View>
+              <Text className="text-background mb-2 font-semibold">
+                Endereço de Email
+              </Text>
+              <TextInput
+                placeholder="Insira o seu email"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={formData.email}
+                onChangeText={(text) =>
+                  setFormData({ ...formData, email: text })
+                }
+                className="w-full border bg-white border-fundoescuro rounded-lg px-4 py-4 text-lg"
+              />
+            </View>
 
-        <View>
-          <Text className="text-background mb-2 font-semibold">Password</Text>
-          <View className="flex-row items-center border bg-white border-fundoescuro rounded-lg pr-4">
-            <TextInput
-              placeholder="Insira a sua password"
-              secureTextEntry={!showPassword}
-              autoCapitalize="none"
-              value={formData.password}
-              onChangeText={(text) =>
-                setFormData({ ...formData, password: text })
-              }
-              className="flex-1 px-4 py-4 text-lg"
-            />
-            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-              {showPassword ? (
-                <EyeOff size={20} color="#BCA9A1" />
+            <View>
+              <Text className="text-background mb-2 font-semibold">
+                Password
+              </Text>
+              <View className="flex-row items-center border bg-white border-fundoescuro rounded-lg pr-4">
+                <TextInput
+                  placeholder="Insira a sua password"
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  value={formData.password}
+                  onChangeText={(text) =>
+                    setFormData({ ...formData, password: text })
+                  }
+                  className="flex-1 px-4 py-4 text-lg"
+                />
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                  {showPassword ? (
+                    <EyeOff size={20} color="#BCA9A1" />
+                  ) : (
+                    <Eye size={20} color="#BCA9A1" />
+                  )}
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity
+                onPress={() => router.push("/recover-password")}
+                className="self-end mt-2"
+              >
+                <Text className="text-background text-sm">
+                  Esqueceu a password?
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              onPress={handleLogin}
+              disabled={loading}
+              className="mt-4 flex items-center bg-background rounded-full py-4"
+            >
+              {loading ? (
+                <ActivityIndicator color="white" />
               ) : (
-                <Eye size={20} color="#BCA9A1" />
+                <Text className="text-white font-semibold">Entrar</Text>
               )}
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity
-            onPress={() => router.push("/recover-password")}
-            className="self-end mt-2"
+            onPress={() => router.push("/create-account")}
+            className="mt-6 flex items-center"
           >
-            <Text className="text-background text-sm">
-              Esqueceu a password?
+            <Text className="text-black font-semibold">
+              Não possui uma conta?{" "}
+              <Text className="text-background">Criar</Text>
             </Text>
           </TouchableOpacity>
-        </View>
 
-        <TouchableOpacity
-          onPress={handleLogin}
-          disabled={loading}
-          className="mt-4 flex items-center bg-background rounded-full py-4"
-        >
-          {loading ? (
-            <ActivityIndicator color="white" />
-          ) : (
-            <Text className="text-white font-semibold">Entrar</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-      <TouchableOpacity
-        onPress={() => router.push("/create-account")}
-        className="mt-6 flex items-center"
-      >
-        <Text className="text-black font-semibold">
-          Não possui uma conta?{" "}
-          <Text className="text-background">Criar</Text>
-        </Text>
-      </TouchableOpacity>
-
-      <Text className="text-gray-500 text-sm text-center mt-10 mb-6">
-        Ao entrar, voce concorda com os{" "}
-        <Link className="text-background underline" href="/terms-conditions">
-          Termos & Condições
-        </Link>{" "}
-        e as{" "}
-        <Link className="text-background underline" href="/terms-conditions">
-          Politicas de Privacidade
-        </Link>
-      </Text>
-    </ScrollView>
+          <Text className="text-gray-500 text-sm text-center mt-10 mb-6">
+            Ao entrar, você concorda com os{" "}
+            <Link className="text-background underline" href="/terms-conditions">
+              Termos & Condições
+            </Link>{" "}
+            e as{" "}
+            <Link className="text-background underline" href="/terms-conditions">
+              Políticas de Privacidade
+            </Link>
+          </Text>
+        </ScrollView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }

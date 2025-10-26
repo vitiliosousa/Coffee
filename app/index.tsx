@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
 import { View, Text } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Coffee } from "lucide-react-native";
 import LoadingDots from "@/components/LoadingDots";
 
@@ -9,11 +10,35 @@ export default function Index() {
   const router = useRouter();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-      router.replace("/onboarding/1");
-    }, 2000);
-    return () => clearTimeout(timer);
+    const checkFirstLaunch = async () => {
+      try {
+        // Verifica se o app já foi aberto antes
+        const hasOpened = await AsyncStorage.getItem("hasOpened");
+
+        if (!hasOpened) {
+          // Primeira vez abrindo o app → salva flag
+          await AsyncStorage.setItem("hasOpened", "true");
+
+          // Mostra a tela de splash e depois vai para o onboarding
+          setTimeout(() => {
+            setLoading(false);
+            router.replace("/onboarding/1");
+          }, 2000);
+        } else {
+          // Não é a primeira vez → vai direto para a tela de login
+          setTimeout(() => {
+            setLoading(false);
+            router.replace("/login"); 
+          }, 2000);
+        }
+      } catch (error) {
+        console.error("Erro ao verificar primeira abertura:", error);
+        // Em caso de erro, segue para o onboarding como fallback
+        router.replace("/onboarding/1");
+      }
+    };
+
+    checkFirstLaunch();
   }, []);
 
   if (loading) {
@@ -30,10 +55,13 @@ export default function Index() {
         </View>
         <View className="absolute bottom-10 gap-4">
           <LoadingDots />
-          <Text className="text-gray-400 italic">Criando a sua experiência perfeita</Text>
+          <Text className="text-gray-400 italic">
+            Criando a sua experiência perfeita
+          </Text>
         </View>
       </View>
     );
   }
+
   return null;
 }
