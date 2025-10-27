@@ -64,7 +64,7 @@ export default function CreateAccount() {
           <Coffee size={30} color="#503B36" />
         </View>
         <View className="ml-3">
-          <Text className="text-4xl font-bold text-background">Bem-vindo!</Text>
+          <Text className="text-3xl font-bold text-background">Bem-vindo!</Text>
           <Text className="text-gray-600 text-xl">Vamos começar</Text>
         </View>
       </View>

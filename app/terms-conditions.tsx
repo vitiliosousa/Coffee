@@ -56,7 +56,7 @@ export default function TermsConditions() {
           <Text className="font-bold">7. Alterações dos Termos{"\n"}</Text>
           Podemos atualizar estes Termos periodicamente. O uso contínuo do Coffee
           Buzz constitui aceitação de quaisquer alterações.{"\n\n"}
-          Última atualização: 19 de Julho de 2025. Para dúvidas, entre em contato com{" "}
+          Última atualização: 27 de Outubro de 2025. Para dúvidas, entre em contato com{" "}
           <Text className="text-brown-600">support@coffeebuzz.com</Text>.
         </Text>
       </ScrollView>
