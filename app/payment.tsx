@@ -3,7 +3,7 @@ import {
   ChevronLeft,
   Clock,
   CreditCard,
-  CheckCircle
+  CheckCircle,
 } from "lucide-react-native";
 import { useState, useEffect } from "react";
 import {
@@ -16,16 +16,14 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { authService, AccountInfoResponse } from "@/services/auth.service";
-import { 
-  orderService, 
-  CreateOrderRequest, 
-  OrderItemRequest, 
+import {
+  orderService,
   OrderType as ApiOrderType,
   PaymentMethod as ApiPaymentMethod,
-  Terminal 
+  Terminal,
 } from "@/services/order.service";
 
-type OrderType = 'drive-thru' | 'delivery';
+type OrderType = "drive-thru" | "delivery";
 
 interface CartItem {
   id: string;
@@ -41,24 +39,31 @@ interface CartItem {
   finalPrice: number;
 }
 
+interface OrderItemRequest {
+  product_id: string;
+  variant_id?: string;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+}
+
 export default function Payment() {
   const router = useRouter();
   const params = useLocalSearchParams();
 
-  const [selectedPaymentMethod] = useState<'balance'>('balance');
   const [processing, setProcessing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [availableBalance, setAvailableBalance] = useState<number>(0);
 
   // Dados vindos do Cart
   const [orderData, setOrderData] = useState({
-    orderType: 'delivery' as OrderType,
-    deliveryAddress: '',
+    orderType: "delivery" as OrderType,
+    deliveryAddress: "",
     subtotal: 0,
     discount: 0,
     deliveryFee: 0,
     total: 0,
-    items: [] as CartItem[]
+    items: [] as CartItem[],
   });
 
   // Buscar saldo da API
@@ -69,7 +74,10 @@ export default function Payment() {
         const balance = account?.data?.account?.wallet_balance ?? 0;
         setAvailableBalance(balance);
       } catch (error: any) {
-        Alert.alert("Erro", error.message || "Não foi possível carregar o saldo disponível.");
+        Alert.alert(
+          "Erro",
+          error.message || "Não foi possível carregar o saldo disponível."
+        );
       } finally {
         setLoading(false);
       }
@@ -92,15 +100,26 @@ export default function Payment() {
         }
 
         const item: CartItem = {
-          id: params[`item${i}_id`] as string || '',
+          id: (params[`item${i}_id`] as string) || "",
           productId: params[`item${i}_productId`] as string,
           productName: params[`item${i}_productName`] as string,
-          productDescription: params[`item${i}_productDescription`] as string || '',
-          productImage: params[`item${i}_productImage`] as string || 'https://via.placeholder.com/80',
+          productDescription:
+            (params[`item${i}_productDescription`] as string) || "",
+          productImage:
+            (params[`item${i}_productImage`] as string) ||
+            "https://via.placeholder.com/80",
           basePrice: parseFloat(params[`item${i}_basePrice`] as string) || 0,
-          variantId: (params[`item${i}_variantId`] as string) === '' ? undefined : (params[`item${i}_variantId`] as string),
-          variantName: (params[`item${i}_variantName`] as string) === '' ? undefined : (params[`item${i}_variantName`] as string),
-          variantPriceAdjustment: parseFloat(params[`item${i}_variantPriceAdjustment`] as string) || 0,
+          variantId:
+            (params[`item${i}_variantId`] as string) === ""
+              ? undefined
+              : (params[`item${i}_variantId`] as string),
+          variantName:
+            (params[`item${i}_variantName`] as string) === ""
+              ? undefined
+              : (params[`item${i}_variantName`] as string),
+          variantPriceAdjustment:
+            parseFloat(params[`item${i}_variantPriceAdjustment`] as string) ||
+            0,
           quantity: parseInt(params[`item${i}_quantity`] as string) || 1,
           finalPrice: parseFloat(params[`item${i}_finalPrice`] as string) || 0,
         };
@@ -109,18 +128,18 @@ export default function Payment() {
 
       setOrderData({
         orderType: params.orderType as OrderType,
-        deliveryAddress: params.deliveryAddress as string || '',
+        deliveryAddress: (params.deliveryAddress as string) || "",
         subtotal: parseFloat(params.subtotal as string) || 0,
         discount: parseFloat(params.discount as string) || 0,
         deliveryFee: parseFloat(params.deliveryFee as string) || 0,
         total: parseFloat(params.total as string) || 0,
-        items
+        items,
       });
 
-      console.log('=== PAYMENT: Dados recebidos do carrinho ===');
-      console.log('Items:', items.length);
-      console.log('Subtotal:', params.subtotal);
-      console.log('Total:', params.total);
+      console.log("=== PAYMENT: Dados recebidos do carrinho ===");
+      console.log("Items:", items.length);
+      console.log("Subtotal:", params.subtotal);
+      console.log("Total:", params.total);
     }
   }, [params.orderType, params.itemCount]);
 
@@ -128,9 +147,12 @@ export default function Payment() {
 
   const mapOrderType = (type: OrderType): ApiOrderType => {
     switch (type) {
-      case 'drive-thru': return ApiOrderType.DRIVE_THRU;
-      case 'delivery': return ApiOrderType.DELIVERY;
-      default: return ApiOrderType.DELIVERY;
+      case "drive-thru":
+        return ApiOrderType.DRIVE_THRU;
+      case "delivery":
+        return ApiOrderType.DELIVERY;
+      default:
+        return ApiOrderType.DELIVERY;
     }
   };
 
@@ -145,7 +167,6 @@ export default function Payment() {
       return;
     }
 
-    // Validar valores antes de enviar
     if (orderData.total <= 0) {
       Alert.alert("Erro", "O valor total do pedido deve ser maior que zero.");
       return;
@@ -156,7 +177,6 @@ export default function Payment() {
     try {
       // Converter itens do carrinho para formato da API
       const orderItems: OrderItemRequest[] = orderData.items.map(item => {
-        // Garantir que unit_price e total_price sejam maiores que zero
         const unitPrice = item.finalPrice > 0 ? item.finalPrice : item.basePrice;
         const totalPrice = unitPrice * item.quantity;
 
@@ -180,20 +200,32 @@ export default function Payment() {
         };
       });
 
-      // Preparar dados do pedido (SEM total_amount - API calcula automaticamente)
-      const createOrderRequest = {
+      // Preparar dados do pedido seguindo o formato da documentação
+      const createOrderRequest: any = {
         type: mapOrderType(orderData.orderType),
-        payment_method: ApiPaymentMethod.WALLET,
-        terminal: Terminal.APP,
-        delivery_address: orderData.deliveryAddress && orderData.deliveryAddress !== '' ? orderData.deliveryAddress : undefined,
         items: orderItems
       };
+
+      // Adicionar delivery_address apenas se for delivery
+      if (orderData.orderType === 'delivery' && orderData.deliveryAddress) {
+        createOrderRequest.delivery_address = orderData.deliveryAddress;
+      }
 
       console.log("=== PAYMENT: Enviando pedido para API ===");
       console.log(JSON.stringify(createOrderRequest, null, 2));
 
       // Criar pedido na API
-      const response = await orderService.createOrder(createOrderRequest);
+      const response = await orderService.createOrder(createOrderRequest) as {
+        success?: boolean;
+        status?: string;
+        data?: { 
+          id: string; 
+          status: string; 
+          created_at: string;
+          total_amount?: number;
+        };
+        message?: string;
+      };
       
       console.log("=== PAYMENT: Resposta da API ===");
       console.log(JSON.stringify(response, null, 2));
@@ -202,6 +234,9 @@ export default function Payment() {
       
       if (isSuccess && response.data) {
         console.log("Pedido criado com sucesso:", response.data.id);
+        
+        // Obter o total do pedido da resposta da API
+        const orderTotal = response.data.total_amount || orderData.total;
         
         // 🔥 LIMPAR CARRINHO DO ASYNCSTORAGE
         await AsyncStorage.removeItem('cartItems');
@@ -214,7 +249,7 @@ export default function Payment() {
             orderId: response.data.id,
             orderType: orderData.orderType,
             deliveryAddress: orderData.deliveryAddress,
-            total: orderData.total.toFixed(2),
+            total: orderTotal.toFixed(2),
             itemCount: orderData.items.length.toString(),
             paymentMethod: "Saldo",
             status: response.data.status,
@@ -269,11 +304,13 @@ export default function Payment() {
           <View className="flex-row gap-4 items-center">
             <Clock size={24} />
             <View>
-              <Text className="text-xl font-semibold">Pedido ({orderData.items.length} itens)</Text>
+              <Text className="text-xl font-semibold">
+                Pedido ({orderData.items.length} itens)
+              </Text>
               <Text className="text-lg">Aguardando pagamento</Text>
               <Text className="text-sm">
-                {orderData.orderType === 'delivery' && 'Entrega'}
-                {orderData.orderType === 'drive-thru' && 'Drive-Thru'}
+                {orderData.orderType === "delivery" && "Entrega"}
+                {orderData.orderType === "drive-thru" && "Drive-Thru"}
               </Text>
             </View>
           </View>
@@ -282,14 +319,18 @@ export default function Payment() {
           </Text>
         </View>
 
-        {/* Lista de Itens (Debug) */}
+        {/* Lista de Itens */}
         {orderData.items.length > 0 && (
           <View className="p-6 bg-gray-50">
             <Text className="text-lg font-semibold mb-3">Itens do Pedido</Text>
             {orderData.items.map((item, index) => (
               <View key={index} className="flex-row justify-between mb-2">
-                <Text className="flex-1">{item.quantity}x {item.productName}</Text>
-                <Text className="font-semibold">{(item.finalPrice * item.quantity).toFixed(2)} MT</Text>
+                <Text className="flex-1">
+                  {item.quantity}x {item.productName}
+                </Text>
+                <Text className="font-semibold">
+                  {(item.finalPrice * item.quantity).toFixed(2)} MT
+                </Text>
               </View>
             ))}
           </View>
@@ -317,11 +358,13 @@ export default function Payment() {
           <View className="w-full border-t border-gray-300 my-2"></View>
           <View className="flex-row justify-between">
             <Text className="text-lg font-bold">Total</Text>
-            <Text className="text-lg font-bold">{orderData.total.toFixed(2)} MT</Text>
+            <Text className="text-lg font-bold">
+              {orderData.total.toFixed(2)} MT
+            </Text>
           </View>
         </View>
 
-        {/* Método de pagamento (apenas saldo) */}
+        {/* Método de pagamento */}
         <View className="flex-1 p-6 gap-4">
           <Text className="font-bold text-2xl">Método de Pagamento</Text>
 
@@ -337,13 +380,17 @@ export default function Payment() {
             </View>
 
             <View className="flex-row items-center gap-2">
-              <View className={`px-3 py-1 rounded-full ${
-                hasSufficientBalance ? 'bg-green-200' : 'bg-red-200'
-              }`}>
-                <Text className={`text-sm font-semibold ${
-                  hasSufficientBalance ? 'text-green-700' : 'text-red-700'
-                }`}>
-                  {hasSufficientBalance ? 'Suficiente' : 'Insuficiente'}
+              <View
+                className={`px-3 py-1 rounded-full ${
+                  hasSufficientBalance ? "bg-green-200" : "bg-red-200"
+                }`}
+              >
+                <Text
+                  className={`text-sm font-semibold ${
+                    hasSufficientBalance ? "text-green-700" : "text-red-700"
+                  }`}
+                >
+                  {hasSufficientBalance ? "Suficiente" : "Insuficiente"}
                 </Text>
               </View>
 
@@ -360,12 +407,14 @@ export default function Payment() {
           disabled={processing || !hasSufficientBalance || orderData.total <= 0}
           className={`w-full h-14 rounded-full items-center justify-center shadow-md ${
             processing || !hasSufficientBalance || orderData.total <= 0
-              ? 'bg-gray-400'
-              : 'bg-background'
+              ? "bg-gray-400"
+              : "bg-background"
           }`}
         >
           <Text className="text-white font-bold text-lg">
-            {processing ? 'Processando pedido...' : `Finalizar Pedido - ${orderData.total.toFixed(2)} MT`}
+            {processing
+              ? "Processando pedido..."
+              : `Finalizar Pedido - ${orderData.total.toFixed(2)} MT`}
           </Text>
         </TouchableOpacity>
       </View>

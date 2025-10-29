@@ -1,125 +1,48 @@
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import {
-  CheckCircle,
-  Clock,
-  MapPin,
-  CreditCard,
-  Home,
-  Receipt
-} from "lucide-react-native";
-import { useState } from "react";
-import {
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-  Alert
-} from "react-native";
-
-type OrderType = 'dine-in' | 'drive-thru' | 'delivery';
+import { CheckCircle, Clock, MapPin, CreditCard, Home } from "lucide-react-native";
+import { useOrderConfirmation } from "@/hooks/useOrderConfirmation";
 
 export default function OrderConfirmation() {
   const router = useRouter();
   const params = useLocalSearchParams();
 
-  const [orderData] = useState({
+  const {
+    orderData,
+    getOrderTypeInfo,
+    formatDate,
+    getStatusColor,
+    getStatusText,
+  } = useOrderConfirmation({
     orderId: params.orderId as string,
-    orderType: params.orderType as OrderType,
+    orderType: params.orderType as any,
     tableId: params.tableId as string,
     deliveryAddress: params.deliveryAddress as string,
     total: parseFloat(params.total as string),
     itemCount: parseInt(params.itemCount as string),
     paymentMethod: params.paymentMethod as string,
     status: params.status as string,
-    createdAt: params.createdAt as string
+    createdAt: params.createdAt as string,
   });
-
-  const getOrderTypeInfo = () => {
-    switch (orderData.orderType) {
-      case 'dine-in':
-        return {
-          icon: <Clock size={24} color="#503B36" />,
-          title: 'Dine-In',
-          subtitle: `Mesa ${orderData.tableId}`,
-          description: 'Seu pedido será servido na mesa selecionada'
-        };
-      case 'delivery':
-        return {
-          icon: <MapPin size={24} color="#503B36" />,
-          title: 'Delivery',
-          subtitle: 'Entrega no endereço',
-          description: orderData.deliveryAddress
-        };
-      case 'drive-thru':
-        return {
-          icon: <CreditCard size={24} color="#503B36" />,
-          title: 'Drive-Thru',
-          subtitle: 'Retirada no balcão',
-          description: 'Retire seu pedido no balcão quando estiver pronto'
-        };
-      default:
-        return {
-          icon: <Clock size={24} color="#503B36" />,
-          title: 'Pedido',
-          subtitle: '',
-          description: ''
-        };
-    }
-  };
-
-  const getEstimatedTime = () => {
-    switch (orderData.orderType) {
-      case 'dine-in': return '15-20 minutos';
-      case 'delivery': return '25-35 minutos';
-      case 'drive-thru': return '10-15 minutos';
-      default: return '15-20 minutos';
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'preparing': return 'bg-blue-100 text-blue-800';
-      case 'ready': return 'bg-green-100 text-green-800';
-      case 'completed': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'pending': return 'Pendente';
-      case 'preparing': return 'Preparando';
-      case 'ready': return 'Pronto';
-      case 'completed': return 'Concluído';
-      default: return status;
-    }
-  };
-
-  const handleViewOrderDetails = () => {
-    Alert.alert("Ver Detalhes", "Funcionalidade de detalhes do pedido em desenvolvimento");
-  };
-
-  const handleTrackOrder = () => {
-    Alert.alert("Acompanhar Pedido", "Funcionalidade de acompanhamento em desenvolvimento");
-  };
 
   const orderTypeInfo = getOrderTypeInfo();
 
+  const renderIcon = () => {
+    switch (orderData.orderType) {
+      case "dine-in":
+        return <Clock size={24} color="#503B36" />;
+      case "delivery":
+        return <MapPin size={24} color="#503B36" />;
+      case "drive-thru":
+        return <CreditCard size={24} color="#503B36" />;
+      default:
+        return <Clock size={24} color="#503B36" />;
+    }
+  };
+
   return (
     <View className="flex-1 bg-white">
-      {/* Header de Sucesso */}
+      {/* HEADER DE SUCESSO */}
       <View className="bg-green-500 p-8 items-center justify-center">
         <CheckCircle size={64} color="#FFFFFF" />
         <Text className="text-white text-3xl font-bold mt-4">Pedido Confirmado!</Text>
@@ -132,14 +55,12 @@ export default function OrderConfirmation() {
           <View className="flex-row items-center justify-between mb-4">
             <Text className="text-2xl font-bold">Pedido #{orderData.orderId.slice(-6)}</Text>
             <View className={`px-3 py-1 rounded-full ${getStatusColor(orderData.status)}`}>
-              <Text className={`text-sm font-semibold`}>
-                {getStatusText(orderData.status)}
-              </Text>
+              <Text className="text-sm font-semibold">{getStatusText(orderData.status)}</Text>
             </View>
           </View>
 
           <View className="flex-row items-center gap-4 mb-4">
-            {orderTypeInfo.icon}
+            {renderIcon()}
             <View className="flex-1">
               <Text className="text-xl font-semibold">{orderTypeInfo.title}</Text>
               <Text className="text-lg text-gray-600">{orderTypeInfo.subtitle}</Text>
@@ -169,9 +90,7 @@ export default function OrderConfirmation() {
           </View>
         </View>
 
-
-
-        {/* Informações Adicionais */}
+        {/* Informações Importantes */}
         <View className="bg-yellow-50 rounded-xl p-4 mt-6 mb-20">
           <Text className="text-yellow-800 font-semibold mb-2">Informações importantes:</Text>
           <Text className="text-yellow-700 text-sm leading-5">
@@ -182,7 +101,7 @@ export default function OrderConfirmation() {
         </View>
       </ScrollView>
 
-      {/* Footer com botão para voltar ao início */}
+      {/* FOOTER */}
       <View className="border-t border-gray-200 p-6 bg-white">
         <TouchableOpacity
           onPress={() => router.push("/home")}

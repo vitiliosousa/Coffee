@@ -2,50 +2,27 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
   ScrollView,
-  Alert,
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Keyboard,
   Pressable,
+  TouchableOpacity,
 } from "react-native";
 import { useRouter, Link } from "expo-router";
-import { Coffee, Eye, EyeOff } from "lucide-react-native";
 import { useState } from "react";
-import { authService } from "@/services/auth.service";
+import AuthHeader from "@/components/AuthHeader";
+import PasswordInput from "@/components/PasswordInput";
+import LoadingButton from "@/components/LoadingButton";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Login() {
   const router = useRouter();
+  const { handleLogin, loading } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const handleLogin = async () => {
-    if (!formData.email || !formData.password) {
-      Alert.alert("Erro", "Por favor, preencha todos os campos");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const response = await authService.login({
-        email: formData.email,
-        password: formData.password,
-      });
-      Alert.alert("Sucesso", `Bem-vindo, ${response.data.user.name}!`);
-      router.replace("/home?fromLogin=true");
-    } catch (error: any) {
-      Alert.alert("Erro no login", error.message || "Não foi possível logar");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <KeyboardAvoidingView
@@ -57,22 +34,11 @@ export default function Login() {
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ flexGrow: 1, padding: 24 }}
         >
-          {/* Header */}
-          <View className="flex-row items-center mt-12">
-            <View className="w-16 h-16 bg-fundoescuro rounded-2xl items-center justify-center">
-              <Coffee size={30} color="#503B36" />
-            </View>
-            <View className="ml-3">
-              <Text className="text-3xl font-bold text-background">
-                Bem-vindo de volta!
-              </Text>
-              <Text className="text-gray-600 text-xl">
-                Bom ver você de novo
-              </Text>
-            </View>
-          </View>
+          <AuthHeader
+            title="Bem-vindo de volta!"
+            subtitle="Bom ver você de novo"
+          />
 
-          {/* Texto de introdução */}
           <View className="mt-[60px] gap-3">
             <Text className="text-3xl font-bold text-background">
               Entrar na sua conta
@@ -82,9 +48,7 @@ export default function Login() {
             </Text>
           </View>
 
-          {/* Inputs */}
           <View className="mt-10 gap-6 flex-1">
-            {/* Email */}
             <View>
               <Text className="text-background mb-2 font-semibold">
                 Endereço de Email
@@ -101,32 +65,15 @@ export default function Login() {
               />
             </View>
 
-            {/* Password */}
             <View>
-              <Text className="text-background mb-2 font-semibold">
-                Password
-              </Text>
-              <View className="flex-row items-center border bg-white border-fundoescuro rounded-lg pr-4">
-                <TextInput
-                  placeholder="Insira a sua password"
-                  secureTextEntry={!showPassword}
-                  autoCapitalize="none"
-                  value={formData.password}
-                  onChangeText={(text) =>
-                    setFormData({ ...formData, password: text })
-                  }
-                  className="flex-1 px-4 py-4 text-lg"
-                />
-                <TouchableOpacity
-                  onPress={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff size={20} color="#BCA9A1" />
-                  ) : (
-                    <Eye size={20} color="#BCA9A1" />
-                  )}
-                </TouchableOpacity>
-              </View>
+              <PasswordInput
+                label="Password"
+                placeholder="Insira a sua password"
+                value={formData.password}
+                onChangeText={(text) =>
+                  setFormData({ ...formData, password: text })
+                }
+              />
 
               <TouchableOpacity
                 onPress={() => router.push("/recover-password")}
@@ -138,21 +85,19 @@ export default function Login() {
               </TouchableOpacity>
             </View>
 
-            {/* Botão de login */}
-            <TouchableOpacity
-              onPress={handleLogin}
-              disabled={loading}
-              className="mt-4 flex items-center bg-background rounded-full py-4"
-            >
-              {loading ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <Text className="text-white font-semibold">Entrar</Text>
-              )}
-            </TouchableOpacity>
+            <LoadingButton
+              title="Entrar"
+              isLoading={loading}
+              onPress={() =>
+                handleLogin({
+                  email: formData.email,
+                  password: formData.password,
+                })
+              }
+              className="mt-4"
+            />
           </View>
 
-          {/* Criar conta */}
           <TouchableOpacity
             onPress={() => router.push("/create-account")}
             className="mt-6 flex items-center"
@@ -163,20 +108,13 @@ export default function Login() {
             </Text>
           </TouchableOpacity>
 
-          {/* Termos */}
           <Text className="text-gray-500 text-sm text-center mt-10 mb-6">
             Ao entrar, você concorda com os{" "}
-            <Link
-              className="text-background underline"
-              href="/terms-conditions"
-            >
+            <Link className="text-background underline" href="/terms-conditions">
               Termos & Condições
             </Link>{" "}
             e as{" "}
-            <Link
-              className="text-background underline"
-              href="/privacy-policy"
-            >
+            <Link className="text-background underline" href="/privacy-policy">
               Políticas de Privacidade
             </Link>
           </Text>

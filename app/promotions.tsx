@@ -1,87 +1,20 @@
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
-  ActivityIndicator,
-  Image,
-} from "react-native";
-import { useState, useEffect } from "react";
-import { useRouter, Link } from "expo-router";
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Image } from "react-native";
+import { Link } from "expo-router";
 import { ChevronLeft, Calendar, Gift } from "lucide-react-native";
-import { adminService } from "@/services/admin.service";
-
-interface Campaign {
-  id: string;
-  title: string;
-  type: string;
-  description: string;
-  start_date: string;
-  end_date: string;
-  image_url: string;
-  send_notification: boolean;
-  channels: string[];
-  created_at: string;
-  updated_at: string;
-}
-
-interface ActiveCampaignsResponse {
-  status: string;
-  message: string;
-  data: {
-    count: number;
-    data: Campaign[];
-  };
-}
+import { usePromotions } from "@/hooks/usePromotions";
 
 export default function Promotions() {
-  const router = useRouter();
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { campaigns, loading, loadPromotions, formatDate } = usePromotions();
 
-  useEffect(() => {
-    loadPromotions();
-  }, []);
-
-  const loadPromotions = async () => {
-    setLoading(true);
-    try {
-      const response = await adminService.getActiveCampaigns();
-      
-      if (response.data?.data) {
-        const appPromotions = response.data.data.filter(campaign => 
-          campaign.channels.includes("app")
-        );
-        setCampaigns(appPromotions);
-      }
-    } catch (error: any) {
-      console.error("Erro ao carregar promoções:", error);
-      Alert.alert("Erro", error.message || "Não foi possível carregar as promoções");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR');
-  };
-
-  
-
-  const renderPromotionCard = (campaign: Campaign) => (
+  const renderPromotionCard = (campaign: any) => (
     <View key={campaign.id} className="flex-1 bg-fundo rounded-xl mb-6">
       <View className="flex-row gap-2">
-        {/* Imagem da promoção */}
         <View className="w-40 h-40">
           {campaign.image_url ? (
             <Image
               source={{ uri: campaign.image_url }}
               className="w-40 h-40 rounded-xl"
-              onError={(error) => {
-                console.log("Erro ao carregar imagem:", error.nativeEvent.error);
-              }}
+              onError={(error) => console.log("Erro ao carregar imagem:", error.nativeEvent.error)}
             />
           ) : (
             <Image
@@ -91,21 +24,15 @@ export default function Promotions() {
           )}
         </View>
 
-        {/* Conteúdo da promoção */}
         <View className="flex-1 p-4 gap-2">
-          <Text className="text-xl font-semibold text-gray-800">
-            {campaign.title}
-          </Text>
-          <Text className="text-gray-600 text-base">
-            {campaign.description}
-          </Text>
+          <Text className="text-xl font-semibold text-gray-800">{campaign.title}</Text>
+          <Text className="text-gray-600 text-base">{campaign.description}</Text>
           <View className="flex-row gap-1 items-center">
             <Calendar size={16} color="#503B36" />
             <Text className="text-sm text-gray-500">
               Válido até {formatDate(campaign.end_date)}
             </Text>
           </View>
-        
         </View>
       </View>
     </View>
@@ -113,7 +40,7 @@ export default function Promotions() {
 
   return (
     <View className="flex-1 bg-white">
-      {/* HEADER FIXO */}
+      {/* Header */}
       <View className="bg-background p-6 gap-6">
         <View className="flex-row gap-4 items-center">
           <Link href={"/home"}>
@@ -123,7 +50,7 @@ export default function Promotions() {
         </View>
       </View>
 
-      {/* CONTEÚDO SCROLLÁVEL */}
+      {/* Conteúdo scrollável */}
       <ScrollView className="flex-1 p-6">
         {loading ? (
           <View className="items-center py-8">
@@ -147,9 +74,7 @@ export default function Promotions() {
             </TouchableOpacity>
           </View>
         ) : (
-          <>          
-            {campaigns.map(renderPromotionCard)}
-          </>
+          campaigns.map(renderPromotionCard)
         )}
       </ScrollView>
     </View>

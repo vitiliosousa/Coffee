@@ -1,10 +1,30 @@
-import { Link, useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
-import { ChevronLeft, Truck, MapPin, X, Plus, Minus } from 'lucide-react-native';
-import { useState, useEffect, useCallback } from 'react';
-import { ScrollView, Text, TextInput, TouchableOpacity, View, Image, Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  Link,
+  useRouter,
+  useLocalSearchParams,
+  useFocusEffect,
+} from "expo-router";
+import {
+  ChevronLeft,
+  Truck,
+  MapPin,
+  X,
+  Plus,
+  Minus,
+} from "lucide-react-native";
+import { useState, useEffect, useCallback } from "react";
+import {
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  Image,
+  Alert,
+} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-type OrderType = 'drive-thru' | 'delivery';
+type OrderType = "drive-thru" | "delivery";
 
 interface CartItem {
   id: string;
@@ -26,32 +46,38 @@ export default function Cart() {
 
   const [items, setItems] = useState<CartItem[]>([]);
   const [cartLoaded, setCartLoaded] = useState(false);
-  const [selectedOrderType, setSelectedOrderType] = useState<OrderType>('drive-thru');
-  const [deliveryAddress, setDeliveryAddress] = useState('');
-  const [promoCode, setPromoCode] = useState('');
+  const [selectedOrderType, setSelectedOrderType] =
+    useState<OrderType>("drive-thru");
+  const [deliveryAddress, setDeliveryAddress] = useState("");
+  const [promoCode, setPromoCode] = useState("");
 
   useFocusEffect(
     useCallback(() => {
       const loadCart = async () => {
         try {
-          console.log('=== CART: Loading cart items from AsyncStorage ===');
-          const stored = await AsyncStorage.getItem('cartItems');
-          console.log('=== CART: Raw stored data:', stored);
+          console.log("=== CART: Loading cart items from AsyncStorage ===");
+          const stored = await AsyncStorage.getItem("cartItems");
+          console.log("=== CART: Raw stored data:", stored);
           if (stored) {
             const parsedItems = JSON.parse(stored);
             if (Array.isArray(parsedItems)) {
-              console.log('=== CART: Parsed items:', JSON.stringify(parsedItems, null, 2));
+              console.log(
+                "=== CART: Parsed items:",
+                JSON.stringify(parsedItems, null, 2)
+              );
               setItems(parsedItems);
             } else {
-              console.warn('=== CART: Invalid cart data, resetting to empty array ===');
+              console.warn(
+                "=== CART: Invalid cart data, resetting to empty array ==="
+              );
               setItems([]);
             }
           } else {
-            console.log('=== CART: No data found in AsyncStorage ===');
+            console.log("=== CART: No data found in AsyncStorage ===");
             setItems([]);
           }
         } catch (err) {
-          console.error('=== CART: Error loading cart:', err);
+          console.error("=== CART: Error loading cart:", err);
           setItems([]);
         } finally {
           setCartLoaded(true);
@@ -63,8 +89,8 @@ export default function Cart() {
 
   useEffect(() => {
     if (cartLoaded) {
-      AsyncStorage.setItem('cartItems', JSON.stringify(items)).catch(err => {
-        console.error('=== CART: Error saving cart to AsyncStorage:', err);
+      AsyncStorage.setItem("cartItems", JSON.stringify(items)).catch((err) => {
+        console.error("=== CART: Error saving cart to AsyncStorage:", err);
       });
     }
   }, [items, cartLoaded]);
@@ -74,24 +100,33 @@ export default function Cart() {
       removeItem(itemId);
       return;
     }
-    setItems(prevItems =>
-      prevItems.map(item => (item.id === itemId ? { ...item, quantity } : item))
+    setItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === itemId ? { ...item, quantity } : item
+      )
     );
   };
 
   const removeItem = (itemId: string) => {
-    setItems(prevItems => prevItems.filter(item => item.id !== itemId));
+    setItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
   };
 
   const handleRemoveItem = (itemId: string, itemName: string) => {
-    Alert.alert('Remover item', `Deseja remover ${itemName} do carrinho?`, [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Remover', onPress: () => removeItem(itemId), style: 'destructive' },
+    Alert.alert("Remover item", `Deseja remover ${itemName} do carrinho?`, [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Remover",
+        onPress: () => removeItem(itemId),
+        style: "destructive",
+      },
     ]);
   };
 
   const getSubtotal = () => {
-    return items.reduce((total, item) => total + item.finalPrice * item.quantity, 0);
+    return items.reduce(
+      (total, item) => total + item.finalPrice * item.quantity,
+      0
+    );
   };
 
   const getTaxes = () => {
@@ -108,16 +143,22 @@ export default function Cart() {
 
   const handleProceedToPayment = () => {
     if (items.length === 0) {
-      Alert.alert('Carrinho vazio', 'Adicione alguns itens ao carrinho primeiro.');
+      Alert.alert(
+        "Carrinho vazio",
+        "Adicione alguns itens ao carrinho primeiro."
+      );
       return;
     }
 
-    if (selectedOrderType === 'delivery' && deliveryAddress.trim() === '') {
-      Alert.alert('Endereço necessário', 'Por favor, insira o endereço de entrega.');
+    if (selectedOrderType === "delivery" && deliveryAddress.trim() === "") {
+      Alert.alert(
+        "Endereço necessário",
+        "Por favor, insira o endereço de entrega."
+      );
       return;
     }
 
-    const deliveryFee = selectedOrderType === 'delivery' ? 2.5 : 0;
+    const deliveryFee = selectedOrderType === "delivery" ? 2.5 : 0;
     const finalTotal = getTotal() + deliveryFee;
 
     const itemsData = items
@@ -128,9 +169,10 @@ export default function Cart() {
         [`item${index}_productDescription`]: item.productDescription,
         [`item${index}_productImage`]: item.productImage,
         [`item${index}_basePrice`]: item.basePrice.toString(),
-        [`item${index}_variantId`]: item.variantId || '',
-        [`item${index}_variantName`]: item.variantName || '',
-        [`item${index}_variantPriceAdjustment`]: item.variantPriceAdjustment.toString(),
+        [`item${index}_variantId`]: item.variantId || "",
+        [`item${index}_variantName`]: item.variantName || "",
+        [`item${index}_variantPriceAdjustment`]:
+          item.variantPriceAdjustment.toString(),
         [`item${index}_quantity`]: item.quantity.toString(),
         [`item${index}_finalPrice`]: item.finalPrice.toString(),
       }))
@@ -138,7 +180,7 @@ export default function Cart() {
 
     const paymentData = {
       orderType: selectedOrderType,
-      deliveryAddress: deliveryAddress || '',
+      deliveryAddress: deliveryAddress || "",
       subtotal: getSubtotal().toFixed(2),
       taxes: getTaxes().toFixed(2),
       discount: getDiscount().toFixed(2),
@@ -148,20 +190,20 @@ export default function Cart() {
       ...itemsData,
     };
 
-    console.log('=== CART: Sending to Payment:', {
+    console.log("=== CART: Sending to Payment:", {
       orderType: paymentData.orderType,
       itemCount: paymentData.itemCount,
       total: paymentData.total,
     });
 
     router.push({
-      pathname: '/payment',
+      pathname: "/payment",
       params: paymentData,
     });
   };
 
   const applyPromoCode = () => {
-    Alert.alert('Código promocional', 'Funcionalidade em desenvolvimento');
+    Alert.alert("Código promocional", "Funcionalidade em desenvolvimento");
   };
 
   if (items.length === 0) {
@@ -176,12 +218,14 @@ export default function Cart() {
           </View>
         </View>
         <View className="flex-1 justify-center items-center p-6">
-          <Text className="text-2xl font-bold text-gray-400 mb-4">Carrinho vazio</Text>
+          <Text className="text-2xl font-bold text-gray-400 mb-4">
+            Carrinho vazio
+          </Text>
           <Text className="text-lg text-gray-500 text-center mb-8">
             Adicione alguns itens deliciosos ao seu carrinho
           </Text>
           <TouchableOpacity
-            onPress={() => router.push('/home')}
+            onPress={() => router.push("/home")}
             className="bg-background px-8 py-4 rounded-full"
           >
             <Text className="text-white font-semibold text-lg">Ver Menu</Text>
@@ -198,7 +242,9 @@ export default function Cart() {
           <TouchableOpacity onPress={() => router.back()}>
             <ChevronLeft size={24} color="#FFFFFF" />
           </TouchableOpacity>
-          <Text className="text-white text-2xl font-bold">Carrinho ({items.length})</Text>
+          <Text className="text-white text-2xl font-bold">
+            Carrinho ({items.length})
+          </Text>
         </View>
       </View>
       <ScrollView className="flex-1">
@@ -206,28 +252,48 @@ export default function Cart() {
           <Text className="text-lg font-semibold mb-2">Tipo de Pedido</Text>
           <View className="flex-row gap-4 justify-center">
             <TouchableOpacity
-              onPress={() => setSelectedOrderType('drive-thru')}
+              onPress={() => setSelectedOrderType("drive-thru")}
               className={`flex-row gap-4 px-4 py-3 rounded-full ${
-                selectedOrderType === 'drive-thru' ? 'bg-background' : 'border'
+                selectedOrderType === "drive-thru" ? "bg-background" : "border"
               }`}
             >
-              <Truck size={20} color={selectedOrderType === 'drive-thru' ? '#FFFFFF' : '#000000'} />
-              <Text className={selectedOrderType === 'drive-thru' ? 'text-white' : ''}>Drive-Thru</Text>
+              <Truck
+                size={20}
+                color={
+                  selectedOrderType === "drive-thru" ? "#FFFFFF" : "#000000"
+                }
+              />
+              <Text
+                className={
+                  selectedOrderType === "drive-thru" ? "text-white" : ""
+                }
+              >
+                Drive-Thru
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => setSelectedOrderType('delivery')}
+              onPress={() => setSelectedOrderType("delivery")}
               className={`flex-row gap-4 px-4 py-3 rounded-full ${
-                selectedOrderType === 'delivery' ? 'bg-background' : 'border'
+                selectedOrderType === "delivery" ? "bg-background" : "border"
               }`}
             >
-              <MapPin size={20} color={selectedOrderType === 'delivery' ? '#FFFFFF' : '#000000'} />
-              <Text className={selectedOrderType === 'delivery' ? 'text-white' : ''}>Delivery</Text>
+              <MapPin
+                size={20}
+                color={selectedOrderType === "delivery" ? "#FFFFFF" : "#000000"}
+              />
+              <Text
+                className={selectedOrderType === "delivery" ? "text-white" : ""}
+              >
+                Delivery
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
-        {selectedOrderType === 'delivery' && (
+        {selectedOrderType === "delivery" && (
           <View className="bg-blue-50 p-6">
-            <Text className="text-lg font-semibold mb-4">Endereço de Entrega</Text>
+            <Text className="text-lg font-semibold mb-4">
+              Endereço de Entrega
+            </Text>
             <TextInput
               value={deliveryAddress}
               onChangeText={setDeliveryAddress}
@@ -244,22 +310,35 @@ export default function Cart() {
         )}
         <View className="p-6">
           <Text className="text-lg font-semibold mb-4">Seus itens</Text>
-          {items.map(item => (
-            <View key={item.id} className="mb-4 p-4 rounded-xl flex-row border items-center">
+          {items.map((item) => (
+            <View
+              key={item.id}
+              className="mb-4 p-4 rounded-xl flex-row border items-center"
+            >
               <Image
-                source={{ uri: item.productImage || 'https://via.placeholder.com/80' }}
+                source={{
+                  uri: item.productImage || "https://via.placeholder.com/80",
+                }}
                 className="w-20 h-20 rounded-xl"
               />
               <View className="flex-1 p-2 gap-2">
                 <View className="flex-row justify-between">
-                  <Text className="text-xl font-semibold">{item.productName}</Text>
-                  <TouchableOpacity onPress={() => handleRemoveItem(item.id, item.productName)}>
+                  <Text className="text-xl font-semibold">
+                    {item.productName}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => handleRemoveItem(item.id, item.productName)}
+                  >
                     <X size={20} />
                   </TouchableOpacity>
                 </View>
-                <Text className="text-lg text-gray-600">{item.productDescription}</Text>
+                <Text className="text-lg text-gray-600">
+                  {item.productDescription}
+                </Text>
                 {item.variantName && (
-                  <Text className="text-sm text-gray-500">Variante: {item.variantName}</Text>
+                  <Text className="text-sm text-gray-500">
+                    Variante: {item.variantName}
+                  </Text>
                 )}
                 <View className="flex-row justify-between">
                   <Text className="text-background text-lg font-semibold">
@@ -268,16 +347,20 @@ export default function Cart() {
                   <View className="flex-row gap-6 mr-4 items-center justify-center">
                     <TouchableOpacity
                       onPress={() => updateQuantity(item.id, item.quantity - 1)}
-                      className="border px-4 py-2 items-center rounded-full justify-center"
+                      className="border border-background w-10 h-10 rounded-full items-center justify-center"
                     >
-                      <Minus size={20} />
+                      <Minus size={20} color="#503B36" />
                     </TouchableOpacity>
-                    <Text className="text-2xl font-semibold">{item.quantity}</Text>
+
+                    <Text className="text-2xl font-semibold">
+                      {item.quantity}
+                    </Text>
+
                     <TouchableOpacity
                       onPress={() => updateQuantity(item.id, item.quantity + 1)}
-                      className="border px-4 py-2 items-center rounded-full justify-center"
+                      className="border border-background w-10 h-10 rounded-full items-center justify-center"
                     >
-                      <Plus size={20} />
+                      <Plus size={20} color="#503B36" />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -305,7 +388,7 @@ export default function Cart() {
             <Text>Subtotal</Text>
             <Text>{getSubtotal().toFixed(2)} MT</Text>
           </View>
-          {selectedOrderType === 'delivery' && (
+          {selectedOrderType === "delivery" && (
             <View className="flex-row justify-between">
               <Text>Taxa de Entrega</Text>
               <Text>2.50 MT</Text>
@@ -319,7 +402,10 @@ export default function Cart() {
           <View className="flex-row justify-between">
             <Text className="text-xl font-bold">Total</Text>
             <Text className="text-xl font-bold">
-              {selectedOrderType === 'delivery' ? (getTotal() + 2.5).toFixed(2) : getTotal().toFixed(2)} MT
+              {selectedOrderType === "delivery"
+                ? (getTotal() + 2.5).toFixed(2)
+                : getTotal().toFixed(2)}{" "}
+              MT
             </Text>
           </View>
         </View>
@@ -331,8 +417,11 @@ export default function Cart() {
             className="w-full h-14 rounded-full bg-background items-center justify-center shadow-md"
           >
             <Text className="text-white font-bold text-lg">
-              Prosseguir para Pagamento -{' '}
-              {selectedOrderType === 'delivery' ? (getTotal() + 2.5).toFixed(2) : getTotal().toFixed(2)} MT
+              Prosseguir para Pagamento -{" "}
+              {selectedOrderType === "delivery"
+                ? (getTotal() + 2.5).toFixed(2)
+                : getTotal().toFixed(2)}{" "}
+              MT
             </Text>
           </TouchableOpacity>
         </View>

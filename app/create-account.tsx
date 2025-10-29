@@ -1,19 +1,19 @@
 import {
   View,
   Text,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-  ActivityIndicator,
 } from "react-native";
 import { useRouter, Link } from "expo-router";
-import { Coffee } from "lucide-react-native";
 import { useState } from "react";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { authService } from "@/services/auth.service";
+import AuthHeader from "@/components/AuthHeader";
+import FormInput from "@/components/FormInput";
+import PasswordInput from "@/components/PasswordInput";
+import LoadingButton from "@/components/LoadingButton";
+import { useRegister } from "@/hooks/useRegister";
 
 export default function CreateAccount() {
   const router = useRouter();
+  const { handleRegister, loading } = useRegister();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -21,34 +21,6 @@ export default function CreateAccount() {
     email: "",
     password: "",
   });
-  const [loading, setLoading] = useState(false);
-
-  const handleCreateAccount = async () => {
-    const { name, phone, email, password } = formData;
-
-    if (!name || !phone || !email || !password) {
-      Alert.alert("Erro", "Por favor, preencha todos os campos");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const response = await authService.register({
-        name,
-        phone,
-        email,
-        password,
-      });
-
-      Alert.alert("Sucesso", "Conta criada com sucesso!");
-      router.replace("/home");
-    } catch (error: any) {
-      Alert.alert("Erro", error.message || "Não foi possível criar a conta");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <KeyboardAwareScrollView
@@ -59,15 +31,7 @@ export default function CreateAccount() {
       contentContainerStyle={{ paddingBottom: 40 }}
     >
       {/* Cabeçalho */}
-      <View className="flex-row items-center mt-12">
-        <View className="w-16 h-16 bg-fundoescuro rounded-2xl items-center justify-center">
-          <Coffee size={30} color="#503B36" />
-        </View>
-        <View className="ml-3">
-          <Text className="text-3xl font-bold text-background">Bem-vindo!</Text>
-          <Text className="text-gray-600 text-xl">Vamos começar</Text>
-        </View>
-      </View>
+      <AuthHeader title="Bem-vindo!" subtitle="Vamos começar" />
 
       {/* Introdução */}
       <View className="mt-[60px] gap-3">
@@ -81,70 +45,47 @@ export default function CreateAccount() {
 
       {/* Formulário */}
       <View className="mt-10 gap-4">
-        <View>
-          <Text className="text-background mb-2 font-semibold">Nome Completo</Text>
-          <TextInput
-            placeholder="Insira o seu nome completo"
-            value={formData.name}
-            onChangeText={(text) => setFormData({ ...formData, name: text })}
-            className="w-full border bg-white border-fundoescuro rounded-lg px-4 py-4 text-lg"
-            returnKeyType="next"
-          />
-        </View>
+        <FormInput
+          label="Nome Completo"
+          placeholder="Insira o seu nome completo"
+          value={formData.name}
+          onChangeText={(text) => setFormData({ ...formData, name: text })}
+          returnKeyType="next"
+        />
 
-        <View>
-          <Text className="text-background mb-2 font-semibold">
-            Número de Telefone
-          </Text>
-          <TextInput
-            placeholder="Insira o seu número de telefone"
-            keyboardType="phone-pad"
-            value={formData.phone}
-            onChangeText={(text) => setFormData({ ...formData, phone: text })}
-            className="w-full border bg-white border-fundoescuro rounded-lg px-4 py-4 text-lg"
-            returnKeyType="next"
-          />
-        </View>
+        <FormInput
+          label="Número de Telefone"
+          placeholder="Insira o seu número de telefone"
+          keyboardType="phone-pad"
+          value={formData.phone}
+          onChangeText={(text) => setFormData({ ...formData, phone: text })}
+          returnKeyType="next"
+        />
 
-        <View>
-          <Text className="text-background mb-2 font-semibold">
-            Endereço de Email
-          </Text>
-          <TextInput
-            placeholder="Insira o seu email"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={formData.email}
-            onChangeText={(text) => setFormData({ ...formData, email: text })}
-            className="w-full border bg-white border-fundoescuro rounded-lg px-4 py-4 text-lg"
-            returnKeyType="next"
-          />
-        </View>
+        <FormInput
+          label="Endereço de Email"
+          placeholder="Insira o seu email"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          value={formData.email}
+          onChangeText={(text) => setFormData({ ...formData, email: text })}
+          returnKeyType="next"
+        />
 
-        <View>
-          <Text className="text-background mb-2 font-semibold">Password</Text>
-          <TextInput
-            placeholder="Crie a sua password"
-            secureTextEntry
-            autoCapitalize="none"
-            value={formData.password}
-            onChangeText={(text) => setFormData({ ...formData, password: text })}
-            className="w-full border bg-white border-fundoescuro rounded-lg px-4 py-4 text-lg"
-            returnKeyType="done"
-          />
-        </View>
+        <PasswordInput
+          label="Password"
+          placeholder="Crie a sua password"
+          value={formData.password}
+          onChangeText={(text) => setFormData({ ...formData, password: text })}
+          returnKeyType="done"
+        />
 
-        <TouchableOpacity
-          onPress={handleCreateAccount}
-          disabled={loading}
-          className="mt-6 flex items-center bg-background rounded-full py-4"
-        >
-          {loading ? (
-            <ActivityIndicator color="white" />
-          ) : (
-            <Text className="text-white font-semibold">Criar conta</Text>
-          )}
-        </TouchableOpacity>
+        <LoadingButton
+          title="Criar conta"
+          isLoading={loading}
+          onPress={() => handleRegister(formData)}
+          className="mt-6"
+        />
       </View>
 
       {/* Login e Termos */}
@@ -163,7 +104,7 @@ export default function CreateAccount() {
           Termos & Condições
         </Link>{" "}
         e{" "}
-        <Link className="text-background underline" href="/terms-conditions">
+        <Link className="text-background underline" href="/privacy-policy">
           Políticas de Privacidade
         </Link>
         .

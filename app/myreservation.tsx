@@ -134,7 +134,7 @@ export default function MyReservation() {
     const timeDiff = reservationTime.getTime() - now.getTime();
     const minutesDiff = timeDiff / (1000 * 60);
 
-    return isToday && minutesDiff <= 30 && minutesDiff >= -120;
+    return isToday && minutesDiff <= 120 && minutesDiff >= -120;
   };
 
   const shouldShowCheckInButton = (reservation: Reservation) => {
@@ -151,6 +151,17 @@ export default function MyReservation() {
     const isToday = reservationDate.toDateString() === now.toDateString();
 
     return isToday;
+  };
+
+  const isReservationDateInFuture = (reservation: Reservation) => {
+    const reservationDate = new Date(reservation.date);
+    const now = new Date();
+    
+    // Definir ambas as datas para meia-noite para comparação correta
+    reservationDate.setHours(0, 0, 0, 0);
+    now.setHours(0, 0, 0, 0);
+    
+    return reservationDate > now;
   };
 
   const handleCheckIn = (reservation: Reservation) => {
@@ -255,6 +266,8 @@ export default function MyReservation() {
     const canDoCheckIn = canCheckIn(reservation);
     const showCheckInButton = shouldShowCheckInButton(reservation);
     const isCheckedIn = reservation.check_in;
+    const isFutureReservation = isReservationDateInFuture(reservation);
+    const isCancelled = reservation.status.toLowerCase() === 'cancelled' || reservation.status.toLowerCase() === 'canceled';
     
     return (
       <View key={reservation.id} className="bg-background rounded-xl p-6 gap-4 mb-6">
@@ -358,7 +371,7 @@ export default function MyReservation() {
           )}
 
           {/* Mensagem quando não há ações disponíveis */}
-          {!showCheckInButton && !canCancel && !isCheckedIn && reservation.status.toLowerCase() !== 'cancelled' && reservation.status.toLowerCase() !== 'canceled' && (
+          {!showCheckInButton && !canCancel && !isCheckedIn && !isCancelled && isFutureReservation && (
             <View className="flex-1 items-center">
               <Text className="text-yellow-300 text-sm text-center">
                 Aguardando data da reserva

@@ -1,82 +1,19 @@
-import { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-} from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import { Link } from "expo-router";
 import { ChevronLeft, Banknote, Smartphone } from "lucide-react-native";
-import { authService, Transaction } from "@/services/auth.service";
+import { useTransactions } from "@/hooks/useTransactions";
 
 export default function History() {
-  const [selectedFilter, setSelectedFilter] = useState("Todos");
-  const [search, setSearch] = useState("");
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // Tradução de status
-  const translateStatus = (status: string): string => {
-    const statusMap: { [key: string]: string } = {
-      confirmed: "Confirmada",
-      pending: "Pendente",
-      rejected: "Rejeitada",
-      completed: "Completa",
-      failed: "Falhada",
-    };
-    return statusMap[status.toLowerCase()] || status;
-  };
-
-  // Tradução de tipo de transação
-  const translateType = (type: string): string => {
-    const typeMap: { [key: string]: string } = {
-      topup: "Recarga",
-      payment: "Pagamento",
-      transfer: "Transferência",
-      refund: "Reembolso",
-      withdrawal: "Levantamento",
-    };
-    return typeMap[type.toLowerCase()] || type;
-  };
-
-  // Mapeamento de filtros (frontend em PT -> API em EN)
-  const filterMap: { [key: string]: string } = {
-    "Todos": "all",
-    "Confirmada": "confirmed",
-    "Pendente": "pending",
-    "Rejeitada": "rejected",
-  };
-
-  // Buscar transações do usuário
-  useEffect(() => {
-    const fetchTransactions = async () => {
-      try {
-        const response = await authService.getWalletTransactions();
-        setTransactions(response.data.items);
-      } catch (error) {
-        console.error("Erro ao buscar transações:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTransactions();
-  }, []);
-
-  const filteredTransactions = transactions.filter((tx) => {
-    const filterValue = filterMap[selectedFilter];
-    const matchFilter =
-      filterValue === "all" || tx.status.toLowerCase() === filterValue;
-    
-    const matchSearch =
-      translateType(tx.type).toLowerCase().includes(search.toLowerCase()) ||
-      tx.description?.toLowerCase().includes(search.toLowerCase()) ||
-      translateStatus(tx.status).toLowerCase().includes(search.toLowerCase());
-    
-    return matchFilter && matchSearch;
-  });
+  const {
+    transactions,
+    loading,
+    selectedFilter,
+    setSelectedFilter,
+    search,
+    setSearch,
+    translateStatus,
+    translateType,
+  } = useTransactions();
 
   return (
     <View className="flex-1 bg-white">
@@ -101,7 +38,6 @@ export default function History() {
           keyboardType="default"
           className="w-full border bg-white border-gray-300 rounded-lg px-4 py-4 text-lg mb-4"
         />
-
         <View className="flex-row justify-between">
           {["Todos", "Confirmada", "Pendente", "Rejeitada"].map((filter) => (
             <TouchableOpacity
@@ -127,12 +63,12 @@ export default function History() {
       <ScrollView className="flex-1 p-6">
         {loading ? (
           <ActivityIndicator size="large" color="#000" />
-        ) : filteredTransactions.length === 0 ? (
+        ) : transactions.length === 0 ? (
           <Text className="text-center text-gray-500 mt-10">
             Não foram encontradas transações
           </Text>
         ) : (
-          filteredTransactions.map((tx) => {
+          transactions.map((tx) => {
             const Icon = tx.type === "topup" ? Smartphone : Banknote;
             const isTopup = tx.type === "topup";
 

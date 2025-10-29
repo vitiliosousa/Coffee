@@ -4,99 +4,22 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
-  Alert,
   ActivityIndicator,
 } from "react-native";
-import { useState, useEffect } from "react";
-import { useRouter, Link } from "expo-router";
+import { Link } from "expo-router";
 import { ChevronLeft, User } from "lucide-react-native";
-import { authService } from "@/services/auth.service";
+import { useProfile } from "@/hooks/useProfile";
 
 export default function Profile() {
-  const router = useRouter();
-  const [formData, setFormData] = useState({
-    name: "",
-    phone: "",
-    email: "",
-  });
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-
-  // Carregar dados do usuário quando a tela carrega
-  useEffect(() => {
-    loadUserData();
-  }, []);
-
-  const loadUserData = async () => {
-    setLoading(true);
-    try {
-      const response = await authService.getAccountInfo();
-      
-      if (response.data?.account) {
-        const account = response.data.account;
-        setFormData({
-          name: account.name || "",
-          phone: account.phone || "",
-          email: account.email || "",
-        });
-      }
-    } catch (error: any) {
-      Alert.alert("Erro", error.message || "Não foi possível carregar os dados do usuário");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSaveChanges = async () => {
-    if (!formData.name || !formData.email) {
-      Alert.alert("Erro", "Por favor, preencha os campos obrigatórios");
-      return;
-    }
-
-    setSaving(true);
-
-    try {
-      // Aqui você implementaria a chamada para atualizar o perfil
-      // const response = await authService.updateProfile(formData);
-      
-      Alert.alert("Sucesso", "Dados salvos com sucesso!");
-    } catch (error: any) {
-      Alert.alert("Erro", error.message || "Não foi possível salvar as alterações");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleDeleteAccount = () => {
-    Alert.alert(
-      "Deletar Conta",
-      "Tem certeza que deseja deletar sua conta? Esta ação não pode ser desfeita.",
-      [
-        { text: "Cancelar", style: "cancel" },
-        { 
-          text: "Deletar", 
-          style: "destructive",
-          onPress: confirmDeleteAccount
-        }
-      ]
-    );
-  };
-
-  const confirmDeleteAccount = async () => {
-    setDeleting(true);
-    try {
-      
-      // await authService.deleteAccount();
-      
-      Alert.alert("Conta deletada", "Sua conta foi deletada com sucesso");
-      router.replace("/login");
-    } catch (error: any) {
-      Alert.alert("Erro", error.message || "Não foi possível deletar a conta");
-    } finally {
-      setDeleting(false);
-    }
-  };
+  const {
+    formData,
+    setFormData,
+    loading,
+    saving,
+    deleting,
+    handleSaveChanges,
+    handleDeleteAccount,
+  } = useProfile();
 
   if (loading) {
     return (
@@ -127,7 +50,6 @@ export default function Profile() {
           </View>
         </View>
 
-        {/* Full Name */}
         <View className="mt-8">
           <Text className="text-lg font-semibold mb-2 text-background">Nome Completo</Text>
           <TextInput
@@ -138,7 +60,6 @@ export default function Profile() {
           />
         </View>
 
-        {/* Phone Number */}
         <View className="mt-6">
           <Text className="text-lg font-semibold mb-2 text-background">Número de Telefone</Text>
           <TextInput
@@ -150,7 +71,6 @@ export default function Profile() {
           />
         </View>
 
-        {/* Email */}
         <View className="mt-6">
           <Text className="text-lg font-semibold mb-2 text-background">Email</Text>
           <TextInput
@@ -167,7 +87,6 @@ export default function Profile() {
       {/* FOOTER FIXO */}
       <View className="border-t border-gray-200 p-6 bg-white">
         <View className="flex-col gap-3">
-          {/* Botão de Salvar */}
           <TouchableOpacity
             onPress={handleSaveChanges}
             disabled={saving}

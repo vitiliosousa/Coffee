@@ -18,7 +18,6 @@ import {
   XCircle,
   Package,
   CreditCard,
-  User,
   Phone,
   QrCode,
   Share,
@@ -37,13 +36,13 @@ export default function OrderDetails() {
   useEffect(() => {
     if (id) {
       loadOrderDetails();
-      loadQRCode();
+      // loadQRCode(); // Comentado pois a função não existe no service
     }
   }, [id]);
 
   const loadOrderDetails = async () => {
     try {
-      const response = await orderService.getOrderById(id as string);
+      const response: any = await orderService.getOrderById(id as string);
       if (response.success && response.data) {
         setOrder(response.data);
       } else {
@@ -57,6 +56,8 @@ export default function OrderDetails() {
     }
   };
 
+  // Função comentada pois getOrderQRCode não existe no service
+  /*
   const loadQRCode = async () => {
     try {
       setQrCodeLoading(true);
@@ -66,11 +67,11 @@ export default function OrderDetails() {
       }
     } catch (error: any) {
       console.error("Erro ao carregar QR Code:", error);
-      // Não mostrar alerta para erro de QR Code, pois não é crítico
     } finally {
       setQrCodeLoading(false);
     }
   };
+  */
 
   const formatDate = (dateString: string) => {
     try {
@@ -170,8 +171,6 @@ export default function OrderDetails() {
         return { icon: Truck, color: '#3b82f6', text: 'Entrega' };
       case OrderType.DRIVE_THRU:
         return { icon: Truck, color: '#8b5cf6', text: 'Drive-Thru' };
-      case OrderType.DINE_IN:
-        return { icon: MapPin, color: '#10b981', text: 'Mesa' };
       default:
         return { icon: Package, color: '#6b7280', text: 'Pedido' };
     }
@@ -432,8 +431,8 @@ export default function OrderDetails() {
           )}
         </View>
 
-        {/* QR Code para Pagamento/Acompanhamento */}
-        {order.status === OrderStatus.PENDING && (
+        {/* QR Code para Pagamento/Acompanhamento - Desabilitado temporariamente */}
+        {order.status === OrderStatus.PENDING && qrCodeImage && (
           <View className="p-6 bg-white border-b border-gray-200">
             <Text className="text-lg font-bold text-gray-900 mb-4">QR Code do Pedido</Text>
             <View className="items-center bg-gray-50 p-6 rounded-xl">

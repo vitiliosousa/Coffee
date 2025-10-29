@@ -1,77 +1,26 @@
-import { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
-} from "react-native";
-import { useRouter, Link } from "expo-router";
+import { View, Text, TextInput, TouchableOpacity, ScrollView } from "react-native";
 import { ChevronLeft, Banknote, Smartphone } from "lucide-react-native";
-import DotsWhite from "@/components/DotsWhite";
-import { authService } from "@/services/auth.service";
+import { useAddMoney } from "@/hooks/useAddMoney";
+import { Link } from "expo-router";
 
 export default function AddMoney() {
-  const router = useRouter();
-  const [amount, setAmount] = useState("");
-  const [phone, setPhone] = useState(""); // Novo campo de telefone
-  const [paymentMethod, setPaymentMethod] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const quickAmounts = [200, 500, 1000, 2000];
-
-  // Preenche o telefone do usuário caso esteja salvo
-  useEffect(() => {
-    (async () => {
-      const user = await authService.getUser();
-      if (user?.phone) setPhone(user.phone);
-    })();
-  }, []);
-
-  const handleConfirmDeposit = async () => {
-    if (!amount || !paymentMethod || !phone) {
-      Alert.alert("Aviso", "Preencha todos os campos antes de continuar.");
-      return;
-    }
-
-    if (paymentMethod !== "mpesa") {
-      Alert.alert("Aviso", "Por enquanto só o Mpesa está disponível.");
-      return;
-    }
-
-    try {
-      setLoading(true);
-
-      const user = await authService.getUser();
-      if (!user) {
-        Alert.alert("Erro", "Usuário não encontrado. Faça login novamente.");
-        return;
-      }
-
-      const response = await authService.walletTopUp({
-        user_id: user.id,
-        amount: parseFloat(amount),
-        phone,
-        description: "Recarga via app",
-        method: "mpesa",
-      });
-
-      Alert.alert("Sucesso", response.message || "Recarga solicitada!");
-      router.push("/wallet");
-    } catch (error: any) {
-      console.error(error);
-      Alert.alert("Erro", error.message || "Falha ao processar a recarga.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    amount,
+    setAmount,
+    phone,
+    setPhone,
+    paymentMethod,
+    setPaymentMethod,
+    loading,
+    quickAmounts,
+    handleConfirmDeposit,
+    router,
+  } = useAddMoney();
 
   return (
     <View className="flex-1 bg-white">
       {/* Header */}
       <View className="bg-background p-6 gap-6">
-        
         <View className="flex-row gap-4 items-center">
           <Link href={"/wallet"}>
             <ChevronLeft size={24} color={"#FFFFFF"} />
@@ -81,11 +30,9 @@ export default function AddMoney() {
       </View>
 
       <ScrollView className="flex-1 p-6">
-        {/* Campo de valor */}
+        {/* Valor */}
         <View className="mb-6 gap-4">
-          <Text className="text-2xl font-semibold mb-2 text-background">
-            Introduzir o montante
-          </Text>
+          <Text className="text-2xl font-semibold mb-2 text-background">Introduzir o montante</Text>
           <TextInput
             value={amount}
             onChangeText={setAmount}
@@ -95,6 +42,7 @@ export default function AddMoney() {
           />
         </View>
 
+        {/* Quick amounts */}
         <View className="flex-row flex-wrap justify-between mb-6">
           {quickAmounts.map((val) => (
             <TouchableOpacity
@@ -107,11 +55,9 @@ export default function AddMoney() {
           ))}
         </View>
 
-        {/* Campo de telefone */}
+        {/* Telefone */}
         <View className="mb-6 gap-4">
-          <Text className="text-2xl font-semibold mb-2 text-background">
-            Número de Telefone (Mpesa)
-          </Text>
+          <Text className="text-2xl font-semibold mb-2 text-background">Número de Telefone (Mpesa)</Text>
           <TextInput
             value={phone}
             onChangeText={setPhone}
@@ -121,10 +67,8 @@ export default function AddMoney() {
           />
         </View>
 
-        <Text className="text-2xl font-semibold mb-3 text-background">
-          Selecionar o método de pagamento
-        </Text>
-
+        {/* Método de pagamento */}
+        <Text className="text-2xl font-semibold mb-3 text-background">Selecionar o método de pagamento</Text>
         <View className="gap-4">
           <TouchableOpacity
             onPress={() => setPaymentMethod("bank")}
@@ -136,9 +80,7 @@ export default function AddMoney() {
           >
             <Banknote size={28} color="#3b82f6" />
             <View>
-              <Text className="text-lg font-semibold text-background">
-                Transferencia Bancária
-              </Text>
+              <Text className="text-lg font-semibold text-background">Transferencia Bancária</Text>
               <Text>Transferencia Bancaria Directa</Text>
             </View>
           </TouchableOpacity>
@@ -153,14 +95,13 @@ export default function AddMoney() {
           >
             <Smartphone size={28} color="#22c55e" />
             <View>
-              <Text className="text-lg font-semibold text-background">
-                Mpesa
-              </Text>
+              <Text className="text-lg font-semibold text-background">Mpesa</Text>
               <Text className="text-gray-500">Transferência de dinheiro móvel</Text>
             </View>
           </TouchableOpacity>
         </View>
 
+        {/* Botão Confirmar */}
         <TouchableOpacity
           disabled={!amount || !paymentMethod || !phone || loading}
           onPress={handleConfirmDeposit}

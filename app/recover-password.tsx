@@ -1,72 +1,17 @@
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
-  ActivityIndicator,
-} from "react-native";
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
-import { Mail } from "lucide-react-native";
-import { useState } from "react";
-import { authService } from "@/services/auth.service";
+import AuthHeader from "@/components/AuthHeader";
+import FormInput from "@/components/FormInput";
+import LoadingButton from "@/components/LoadingButton";
+import { useRecoverPassword } from "@/hooks/useRecoverPassword";
 
 export default function RecoverPassword() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const handleRecover = async () => {
-    if (!email) {
-      Alert.alert("Erro", "Por favor, insira o seu email");
-      return;
-    }
-
-    if (!validateEmail(email)) {
-      Alert.alert("Erro", "Por favor, insira um email válido");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      // Aqui você chamaria authService.requestPasswordReset(email)
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Navegar para tela de OTP
-      router.push({
-        pathname: "/otp-verification" as any,
-        params: { email },
-      });
-    } catch (error: any) {
-      Alert.alert(
-        "Erro",
-        error.message || "Não foi possível iniciar a recuperação da password"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { email, setEmail, loading, handleRecover } = useRecoverPassword();
 
   return (
     <ScrollView className="flex-1 bg-fundo p-6">
-      <View className="flex-row items-center mt-12">
-        <View className="w-16 h-16 bg-fundoescuro rounded-2xl items-center justify-center">
-          <Mail size={30} color="#503B36" />
-        </View>
-        <View className="ml-3">
-          <Text className="text-3xl font-bold text-background">
-            Recuperar Password
-          </Text>
-          <Text className="text-gray-600 text-xl">Vamos te ajudar</Text>
-        </View>
-      </View>
+      <AuthHeader title="Recuperar Password" subtitle="Vamos te ajudar" />
 
       <View className="mt-[60px] gap-3">
         <Text className="text-3xl font-bold text-background">
@@ -78,33 +23,21 @@ export default function RecoverPassword() {
       </View>
 
       <View className="mt-10 gap-6">
-        <View>
-          <Text className="text-background mb-2 font-semibold">
-            Endereço de Email
-          </Text>
-          <TextInput
-            placeholder="Insira o seu email"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={email}
-            onChangeText={setEmail}
-            className="w-full border bg-white border-fundoescuro rounded-lg px-4 py-4 text-lg"
-          />
-        </View>
+        <FormInput
+          label="Endereço de Email"
+          placeholder="Insira o seu email"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          value={email}
+          onChangeText={setEmail}
+        />
 
-        <TouchableOpacity
+        <LoadingButton
+          title="Enviar Código"
+          isLoading={loading}
           onPress={handleRecover}
-          disabled={loading}
-          className="mt-4 flex items-center bg-background rounded-full py-4"
-        >
-          {loading ? (
-            <ActivityIndicator color="white" />
-          ) : (
-            <Text className="text-white font-semibold text-lg">
-              Enviar Código
-            </Text>
-          )}
-        </TouchableOpacity>
+          className="mt-4"
+        />
       </View>
 
       <TouchableOpacity
