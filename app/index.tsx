@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import SplashScreen from "@/components/SplashScreen"; // Importar o novo componente
+import { authService } from "@/services/auth.service";
 
 // Constantes para tempos de delay
 const SPLASH_SCREEN_DELAY = 2000;
@@ -22,9 +23,16 @@ export default function Index() {
             router.replace("/onboarding/1");
           }, SPLASH_SCREEN_DELAY);
         } else {
+          // Verificar se o usuário está autenticado
+          const isAuthenticated = await authService.isAuthenticated();
+
           setTimeout(() => {
             setLoading(false);
-            router.replace("/login");
+            if (isAuthenticated) {
+              router.replace("/home");
+            } else {
+              router.replace("/login");
+            }
           }, SPLASH_SCREEN_DELAY);
         }
       } catch (error) {

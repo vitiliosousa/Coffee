@@ -2,15 +2,11 @@ import {
   View,
   Text,
   TextInput,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  Keyboard,
-  Pressable,
   TouchableOpacity,
 } from "react-native";
 import { useRouter, Link } from "expo-router";
 import { useState } from "react";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import AuthHeader from "@/components/AuthHeader";
 import PasswordInput from "@/components/PasswordInput";
 import LoadingButton from "@/components/LoadingButton";
@@ -25,15 +21,13 @@ export default function Login() {
   });
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    <KeyboardAwareScrollView
       className="flex-1 bg-fundo"
+      contentContainerStyle={{ padding: 24, paddingBottom: 40 }}
+      extraScrollHeight={40}
+      enableOnAndroid={true}
+      keyboardShouldPersistTaps="handled"
     >
-      <Pressable onPress={Keyboard.dismiss} className="flex-1">
-        <ScrollView
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ flexGrow: 1, padding: 24 }}
-        >
           <AuthHeader
             title="Bem-vindo de volta!"
             subtitle="Bom ver você de novo"
@@ -118,8 +112,6 @@ export default function Login() {
               Políticas de Privacidade
             </Link>
           </Text>
-        </ScrollView>
-      </Pressable>
-    </KeyboardAvoidingView>
+    </KeyboardAwareScrollView>
   );
 }

@@ -157,8 +157,9 @@ class AuthService {
       }
       return data;
     } catch (error) {
-      console.error("Erro na requisição:", error);
+      // Apenas logar erros de conexão, não erros de API (como Unauthorized)
       if (error instanceof TypeError) {
+        console.error("Erro de conexão:", error);
         throw {
           status: "error",
           message: isWeb

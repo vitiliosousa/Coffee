@@ -74,10 +74,25 @@ export default function Payment() {
         const balance = account?.data?.account?.wallet_balance ?? 0;
         setAvailableBalance(balance);
       } catch (error: any) {
-        Alert.alert(
-          "Erro",
-          error.message || "Não foi possível carregar o saldo disponível."
-        );
+        // Se o erro for "Unauthorized", significa que o token expirou ou é inválido
+        if (error.message === "Unauthorized" || error.status === "error") {
+          await authService.logout();
+          Alert.alert(
+            "Sessão Expirada",
+            "Sua sessão expirou. Por favor, faça login novamente.",
+            [
+              {
+                text: "OK",
+                onPress: () => router.replace("/login"),
+              },
+            ]
+          );
+        } else {
+          Alert.alert(
+            "Erro",
+            error.message || "Não foi possível carregar o saldo disponível."
+          );
+        }
       } finally {
         setLoading(false);
       }

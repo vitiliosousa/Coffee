@@ -60,8 +60,24 @@ export default function Home() {
           router.replace("/home");
         }
       } catch (error: any) {
-        console.error("Erro ao buscar dados:", error.message);
-        Alert.alert("Erro", "Não foi possível carregar as informações");
+        // Se o erro for "Unauthorized", significa que o token expirou ou é inválido
+        if (error.message === "Unauthorized" || error.status === "error") {
+          // Fazer logout e redirecionar para login
+          await authService.logout();
+          Alert.alert(
+            "Sessão Expirada",
+            "Sua sessão expirou. Por favor, faça login novamente.",
+            [
+              {
+                text: "OK",
+                onPress: () => router.replace("/login"),
+              },
+            ]
+          );
+        } else {
+          console.error("Erro ao buscar dados:", error.message);
+          Alert.alert("Erro", "Não foi possível carregar as informações");
+        }
       } finally {
         setLoading(false);
       }

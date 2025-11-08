@@ -1,0 +1,171 @@
+PS C:\Users\VITILIO SOUSA\Desktop\brewhouse-loyalty-mobile> npm start
+
+> brewhouse-loyalty-mobile@1.0.0 start
+> expo start
+
+Starting project at C:\Users\VITILIO SOUSA\Desktop\brewhouse-loyalty-mobile
+Starting Metro Bundler
+▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+█ ▄▄▄▄▄ █   █▄ ▀▄██ ▄▄▄▄▄ █
+█ █   █ █ ▀▄ █▀▄█▀█ █   █ █
+█ █▄▄▄█ █▀██▀▀▄▀▄▀█ █▄▄▄█ █
+█▄▄▄▄▄▄▄█▄▀▄█ █▄▀ █▄▄▄▄▄▄▄█
+█▄▄█▀▄ ▄▀█▀▀▄▀▀▄▀▄▀█ ▀▄▄ ▄█
+█▀▄▀▀▀ ▄▄▀█▀ ▄█▀ ▄▄█▀   ▀██
+█ █▀▄▀▀▄  ▀▄█▄█▄▀▄▀▄ ▀▄ ▀██
+████▄▄█▄█▀▄██▀▄█▄  ███ ▀███
+█▄▄▄▄█▄▄█ ▀▄▄ █▄▀ ▄▄▄ ▀ ▄▄█
+█ ▄▄▄▄▄ █▀▀█ ▄██▀ █▄█ ▀▀███
+█ █   █ █▄▄▀▀▀▀▄█ ▄ ▄▄▀ ▀▀█
+█ █▄▄▄█ █▀ █ ███▀█▀ ▀█▀▀ ██
+█▄▄▄▄▄▄▄█▄▄█▄██▄███▄▄▄▄▄▄▄█
+
+› Metro waiting on exp://10.108.241.121:8081
+› Scan the QR code above with Expo Go (Android) or the Camera app (iOS)
+
+› Web is waiting on http://localhost:8081
+
+› Using Expo Go
+› Press s │ switch to development build
+
+› Press a │ open Android
+› Press w │ open web
+
+› Press j │ open debugger
+› Press r │ reload app
+› Press m │ toggle menu
+› shift+m │ more tools
+› Press o │ open project code in your editor
+
+› Press ? │ show all commands
+
+Logs for your project will appear below. Press Ctrl+C to exit.
+Android Bundled 31815ms node_modules\expo-router\entry.js (3267 modules)
+ WARN  SafeAreaView has been deprecated and will be removed in a future release. Please use 'react-native-safe-area-context' instead. See https://github.com/th3rdwave/react-native-safe-area-context
+ LOG  === CART: Loading cart items from AsyncStorage ===
+ LOG  === CART: Raw stored data: [{"id":"176262751947213zfbo2lw","productId":"634b4352-546f-42dd-8083-b4f79a6c83c2","productName":"Camiseta Oficial","productDescription":"Camiseta brancaxcxc","productImage":"https://eticketsmz.site/uploads/bc4191a3-6043-4ba3-ba66-7edd5008a68e.jpg","basePrice":49.99,"variantId":"d4b491e2-aa98-45c9-a443-cafd3914d9b1","variantName":"Var 1","variantPriceAdjustment":200,"quantity":1,"finalPrice":249.99},{"id":"1762627525742rp50nbqpp","productId":"c3f2cbcd-ff2e-43de-8714-7eddf6efba71","productName":"Camisete Coffee","productDescription":"Muito Confortavel","productImage":"https://eticketsmz.site/uploads/bc4191a3-6043-4ba3-ba66-7edd5008a68e.jpg","basePrice":1500,"variantPriceAdjustment":0,"quantity":1,"finalPrice":1500}]
+ LOG  === CART: Parsed items: [
+  {
+    "id": "176262751947213zfbo2lw",
+    "productId": "634b4352-546f-42dd-8083-b4f79a6c83c2",
+    "productName": "Camiseta Oficial",
+    "productDescription": "Camiseta brancaxcxc",
+    "productImage": "https://eticketsmz.site/uploads/bc4191a3-6043-4ba3-ba66-7edd5008a68e.jpg",
+    "basePrice": 49.99,
+    "variantId": "d4b491e2-aa98-45c9-a443-cafd3914d9b1",
+    "variantName": "Var 1",
+    "variantPriceAdjustment": 200,
+    "quantity": 1,
+    "finalPrice": 249.99
+  },
+  {
+    "id": "1762627525742rp50nbqpp",
+    "productId": "c3f2cbcd-ff2e-43de-8714-7eddf6efba71",
+    "productName": "Camisete Coffee",
+    "productDescription": "Muito Confortavel",
+    "productImage": "https://eticketsmz.site/uploads/bc4191a3-6043-4ba3-ba66-7edd5008a68e.jpg",
+    "basePrice": 1500,
+    "variantPriceAdjustment": 0,
+    "quantity": 1,
+    "finalPrice": 1500
+  }
+]
+ LOG  === CART: Sending to Payment: {"itemCount": "2", "orderType": "drive-thru", "total": "1749.99"}
+ LOG  === PAYMENT: Dados recebidos do carrinho ===
+ LOG  Items: 2
+ LOG  Subtotal: 1749.99
+ LOG  Total: 1749.99
+ LOG  === PAYMENT: Item Camiseta Oficial ===
+ LOG  Product ID: 634b4352-546f-42dd-8083-b4f79a6c83c2
+ LOG  Variant ID: d4b491e2-aa98-45c9-a443-cafd3914d9b1
+ LOG  Quantity: 1
+ LOG  Unit Price: 249.99
+ LOG  Total Price: 249.99
+ LOG  === PAYMENT: Item Camisete Coffee ===
+ LOG  Product ID: c3f2cbcd-ff2e-43de-8714-7eddf6efba71
+ LOG  Variant ID: undefined
+ LOG  Quantity: 1
+ LOG  Unit Price: 1500
+ LOG  Total Price: 1500
+ LOG  === PAYMENT: Enviando pedido para API ===
+ LOG  {
+  "type": "drive_thru",
+  "items": [
+    {
+      "product_id": "634b4352-546f-42dd-8083-b4f79a6c83c2",
+      "variant_id": "d4b491e2-aa98-45c9-a443-cafd3914d9b1",
+      "quantity": 1,
+      "unit_price": 249.99,
+      "total_price": 249.99
+    },
+    {
+      "product_id": "c3f2cbcd-ff2e-43de-8714-7eddf6efba71",
+      "quantity": 1,
+      "unit_price": 1500,
+      "total_price": 1500
+    }
+  ]
+}
+ LOG  === Criando pedido ===
+ LOG  {
+  "type": "drive_thru",
+  "items": [
+    {
+      "product_id": "634b4352-546f-42dd-8083-b4f79a6c83c2",
+      "quantity": 1,
+      "unit_price": 249.99,
+      "total_price": 249.99,
+      "variant_id": "d4b491e2-aa98-45c9-a443-cafd3914d9b1"
+    },
+    {
+      "product_id": "c3f2cbcd-ff2e-43de-8714-7eddf6efba71",
+      "quantity": 1,
+      "unit_price": 1500,
+      "total_price": 1500
+    }
+  ]
+}
+ LOG  === REQUEST: POST https://eticketsmz.site/brewhouse/api/v1/users/orders ===
+ LOG  Body: {"type":"drive_thru","items":[{"product_id":"634b4352-546f-42dd-8083-b4f79a6c83c2","quantity":1,"unit_price":249.99,"total_price":249.99,"variant_id":"d4b491e2-aa98-45c9-a443-cafd3914d9b1"},{"product_id":"c3f2cbcd-ff2e-43de-8714-7eddf6efba71","quantity":1,"unit_price":1500,"total_price":1500}]}
+ LOG  === RESPONSE: 500  ===
+ LOG  Response data: {
+  "status": "error",
+  "message": "Failed to create order: erro ao processar pagamento: amount must be greater than zero"
+}
+ ERROR  === PAYMENT: Erro ao criar pedido === [Error: Failed to create order: erro ao processar pagamento: amount must be greater than zero]
+
+Call Stack
+  OrderService#makeAuthenticatedRequest (services\order.service.ts)
+  next (<native>)
+  asyncGeneratorStep (node_modules\@babel\runtime\helpers\asyncToGenerator.js)
+  _next (node_modules\@babel\runtime\helpers\asyncToGenerator.js)
+  tryCallOne (address at (InternalBytecode.js:1:1180)
+  anonymous (address at (InternalBytecode.js:1:1874)
+ LOG  === CART: Loading cart items from AsyncStorage ===
+ LOG  === CART: Raw stored data: [{"id":"176262751947213zfbo2lw","productId":"634b4352-546f-42dd-8083-b4f79a6c83c2","productName":"Camiseta Oficial","productDescription":"Camiseta brancaxcxc","productImage":"https://eticketsmz.site/uploads/bc4191a3-6043-4ba3-ba66-7edd5008a68e.jpg","basePrice":49.99,"variantId":"d4b491e2-aa98-45c9-a443-cafd3914d9b1","variantName":"Var 1","variantPriceAdjustment":200,"quantity":1,"finalPrice":249.99},{"id":"1762627525742rp50nbqpp","productId":"c3f2cbcd-ff2e-43de-8714-7eddf6efba71","productName":"Camisete Coffee","productDescription":"Muito Confortavel","productImage":"https://eticketsmz.site/uploads/bc4191a3-6043-4ba3-ba66-7edd5008a68e.jpg","basePrice":1500,"variantPriceAdjustment":0,"quantity":1,"finalPrice":1500}]
+ LOG  === CART: Parsed items: [
+  {
+    "id": "176262751947213zfbo2lw",
+    "productId": "634b4352-546f-42dd-8083-b4f79a6c83c2",
+    "productName": "Camiseta Oficial",
+    "productDescription": "Camiseta brancaxcxc",
+    "productImage": "https://eticketsmz.site/uploads/bc4191a3-6043-4ba3-ba66-7edd5008a68e.jpg",
+    "basePrice": 49.99,
+    "variantId": "d4b491e2-aa98-45c9-a443-cafd3914d9b1",
+    "variantName": "Var 1",
+    "variantPriceAdjustment": 200,
+    "quantity": 1,
+    "finalPrice": 249.99
+  },
+  {
+    "id": "1762627525742rp50nbqpp",
+    "productId": "c3f2cbcd-ff2e-43de-8714-7eddf6efba71",
+    "productName": "Camisete Coffee",
+    "productDescription": "Muito Confortavel",
+    "productImage": "https://eticketsmz.site/uploads/bc4191a3-6043-4ba3-ba66-7edd5008a68e.jpg",
+    "basePrice": 1500,
+    "variantPriceAdjustment": 0,
+    "quantity": 1,
+    "finalPrice": 1500
+  }
+]

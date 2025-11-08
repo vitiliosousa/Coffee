@@ -61,7 +61,7 @@ export default function OnboardingScreen({
       {/* Navigation Button */}
       <View className="flex-row justify-end">
         <TouchableOpacity
-          onPress={() => router.push(nextRoute)}
+          onPress={() => router.replace(nextRoute)}
           className={`w-14 h-14 rounded-full items-center justify-center ${buttonBgColor}`}
         >
           <ChevronRight size={28} color="white" />

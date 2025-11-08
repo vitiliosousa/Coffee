@@ -20,6 +20,7 @@ import {
   CreditCard,
 } from "lucide-react-native";
 import { adminService, UserOrder } from "@/services/admin.service";
+import { authService } from "@/services/auth.service";
 
 export default function MyOrders() {
   const router = useRouter();
@@ -34,7 +35,7 @@ export default function MyOrders() {
   const loadOrders = async () => {
     try {
       const response = await adminService.getUserLiveOrders();
-      
+
       if (response.status === "success" && Array.isArray(response.data)) {
         // Ordenar por data de criação (mais recente primeiro)
         const sortedOrders = response.data.sort(
@@ -46,8 +47,23 @@ export default function MyOrders() {
         setOrders([]);
       }
     } catch (error: any) {
-      console.error("Erro ao carregar pedidos:", error);
-      Alert.alert("Erro", error.message || "Não foi possível carregar os pedidos");
+      // Se o erro for "Unauthorized", significa que o token expirou ou é inválido
+      if (error.message === "Unauthorized" || error.message === "Token não encontrado") {
+        await authService.logout();
+        Alert.alert(
+          "Sessão Expirada",
+          "Sua sessão expirou. Por favor, faça login novamente.",
+          [
+            {
+              text: "OK",
+              onPress: () => router.replace("/login"),
+            },
+          ]
+        );
+      } else {
+        console.error("Erro ao carregar pedidos:", error);
+        Alert.alert("Erro", error.message || "Não foi possível carregar os pedidos");
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);

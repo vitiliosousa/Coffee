@@ -7,7 +7,7 @@ export default function RootLayout() {
   return (
     <CartProvider>
       <SafeAreaProvider>
-        <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right"]}>
+        <SafeAreaView style={{ flex: 1 }} edges={["top", "left", "right", "bottom"]}>
           <Stack screenOptions={{ headerShown: false }} />
         </SafeAreaView>
       </SafeAreaProvider>
