@@ -21,8 +21,10 @@ import {
   View,
   Image,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 type OrderType = "drive-thru" | "delivery";
 
@@ -41,6 +43,7 @@ interface CartItem {
 }
 
 export default function Cart() {
+  const { isChecking, isAuthenticated } = useAuthGuard();
   const router = useRouter();
   const params = useLocalSearchParams();
 
@@ -205,6 +208,19 @@ export default function Cart() {
   const applyPromoCode = () => {
     Alert.alert("Código promocional", "Funcionalidade em desenvolvimento");
   };
+
+  if (isChecking) {
+    return (
+      <View className="flex-1 items-center justify-center bg-white">
+        <ActivityIndicator size="large" color="#503B36" />
+        <Text className="mt-2 text-background">Carregando...</Text>
+      </View>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   if (items.length === 0) {
     return (

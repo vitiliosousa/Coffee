@@ -104,7 +104,7 @@ export default function OrderConfirmation() {
       {/* FOOTER */}
       <View className="border-t border-gray-200 p-6 bg-white">
         <TouchableOpacity
-          onPress={() => router.push("/home")}
+          onPress={() => router.replace("/home")}
           className="w-full h-14 rounded-full bg-background items-center justify-center shadow-md flex-row gap-2"
         >
           <Home size={20} color="#FFFFFF" />

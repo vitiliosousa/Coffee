@@ -6,6 +6,7 @@ import {Calendar,Car,Coffee,ArrowRight,Wallet,User,Menu,Star,Bell,Tag,
 } from "lucide-react-native";
 import { authService, AccountInfoResponse } from "@/services/auth.service";
 import { adminService } from "@/services/admin.service";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -27,6 +28,7 @@ export default function Home() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const scrollViewRef = useRef<ScrollView>(null);
+  const { isChecking, isAuthenticated } = useAuthGuard();
   const [accountInfo, setAccountInfo] = useState<
     AccountInfoResponse["data"]["account"] | null
   >(null);
@@ -197,12 +199,18 @@ export default function Home() {
     </View>
   );
 
-  if (loading) {
+  // Mostrar loading enquanto verifica autenticação ou carrega dados
+  if (isChecking || loading) {
     return (
       <View className="flex-1 items-center justify-center bg-fundo">
         <Text className="text-background text-xl">Carregando...</Text>
       </View>
     );
+  }
+
+  // Se não estiver autenticado, não renderizar nada (useAuthGuard já redirecionou)
+  if (!isAuthenticated) {
+    return null;
   }
 
   return (

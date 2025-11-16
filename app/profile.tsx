@@ -9,25 +9,31 @@ import {
 import { Link } from "expo-router";
 import { ChevronLeft, User } from "lucide-react-native";
 import { useProfile } from "@/hooks/useProfile";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 export default function Profile() {
+  const { isChecking, isAuthenticated } = useAuthGuard();
   const {
     formData,
     setFormData,
     loading,
     saving,
-    deleting,
+    loggingOut,
     handleSaveChanges,
-    handleDeleteAccount,
+    handleLogout,
   } = useProfile();
 
-  if (loading) {
+  if (isChecking || loading) {
     return (
       <View className="flex-1 bg-white items-center justify-center">
         <ActivityIndicator size="large" color="#503B36" />
         <Text className="text-lg mt-4 text-gray-600">Carregando dados...</Text>
       </View>
     );
+  }
+
+  if (!isAuthenticated) {
+    return null;
   }
 
   return (
@@ -100,14 +106,14 @@ export default function Profile() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={handleDeleteAccount}
-            disabled={deleting}
+            onPress={handleLogout}
+            disabled={loggingOut}
             className="w-full h-14 rounded-full bg-red-600 items-center justify-center shadow-md"
           >
-            {deleting ? (
+            {loggingOut ? (
               <ActivityIndicator color="white" />
             ) : (
-              <Text className="text-white font-bold text-lg">Apagar Conta</Text>
+              <Text className="text-white font-bold text-lg">Sair da Conta</Text>
             )}
           </TouchableOpacity>
         </View>

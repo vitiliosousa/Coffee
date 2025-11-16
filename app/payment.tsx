@@ -22,6 +22,7 @@ import {
   PaymentMethod as ApiPaymentMethod,
   Terminal,
 } from "@/services/order.service";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 type OrderType = "drive-thru" | "delivery";
 
@@ -48,6 +49,7 @@ interface OrderItemRequest {
 }
 
 export default function Payment() {
+  const { isChecking, isAuthenticated } = useAuthGuard();
   const router = useRouter();
   const params = useLocalSearchParams();
 
@@ -258,7 +260,7 @@ export default function Payment() {
         console.log("Carrinho limpo do AsyncStorage");
         
         // Navegar para confirmação com dados do pedido
-        router.push({
+        router.replace({
           pathname: "/order-confirmation",
           params: {
             orderId: response.data.id,
@@ -292,13 +294,17 @@ export default function Payment() {
     }
   };
 
-  if (loading) {
+  if (isChecking || loading) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator size="large" color="#503B36" />
         <Text className="mt-2">Carregando saldo...</Text>
       </View>
     );
+  }
+
+  if (!isAuthenticated) {
+    return null;
   }
 
   return (

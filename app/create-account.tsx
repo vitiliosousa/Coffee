@@ -1,15 +1,17 @@
 import {
   View,
   Text,
+  TouchableOpacity,
 } from "react-native";
 import { useRouter, Link } from "expo-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import AuthHeader from "@/components/AuthHeader";
 import FormInput from "@/components/FormInput";
 import PasswordInput from "@/components/PasswordInput";
 import LoadingButton from "@/components/LoadingButton";
 import { useRegister } from "@/hooks/useRegister";
+import { authService } from "@/services/auth.service";
 
 export default function CreateAccount() {
   const router = useRouter();
@@ -21,6 +23,17 @@ export default function CreateAccount() {
     email: "",
     password: "",
   });
+
+  // Redirecionar para home se já estiver logado
+  useEffect(() => {
+    const checkIfLoggedIn = async () => {
+      const isAuthenticated = await authService.isAuthenticated();
+      if (isAuthenticated) {
+        router.replace("/home");
+      }
+    };
+    checkIfLoggedIn();
+  }, [router]);
 
   return (
     <KeyboardAwareScrollView
@@ -89,14 +102,15 @@ export default function CreateAccount() {
       </View>
 
       {/* Login e Termos */}
-      <View className="mt-6 flex items-center">
+      <TouchableOpacity
+        onPress={() => router.replace("/login")}
+        className="mt-6 flex items-center"
+      >
         <Text className="text-black font-semibold">
           Já possui uma conta?{" "}
-          <Link href="/login" className="text-background">
-            Entrar
-          </Link>
+          <Text className="text-background">Entrar</Text>
         </Text>
-      </View>
+      </TouchableOpacity>
 
       <Text className="text-gray-500 text-sm text-center mt-10 mb-6">
         Ao criar uma conta, você concorda com os{" "}

@@ -2,8 +2,10 @@ import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Modal } fr
 import { Link } from "expo-router";
 import { ChevronLeft, CreditCard, Plus, RotateCcw, Banknote, Smartphone, QrCode, Copy, X, Clock } from "lucide-react-native";
 import { useWallet } from "@/hooks/useWallet";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 export default function Wallet() {
+  const { isChecking, isAuthenticated } = useAuthGuard();
   const {
     loading,
     accountInfo,
@@ -19,13 +21,17 @@ export default function Wallet() {
     router,
   } = useWallet();
 
-  if (loading) {
+  if (isChecking || loading) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
         <ActivityIndicator size="large" color="#503B36" />
         <Text className="mt-2 text-background">Carregando carteira...</Text>
       </View>
     );
+  }
+
+  if (!isAuthenticated) {
+    return null;
   }
 
   return (

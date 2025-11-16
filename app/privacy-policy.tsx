@@ -4,7 +4,7 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
-import { useRouter, Link } from "expo-router";
+import { useRouter } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
 
 export default function PrivacyPolicy() {
@@ -15,9 +15,9 @@ export default function PrivacyPolicy() {
       {/* HEADER FIXO */}
       <View className="bg-background p-6 gap-6">
         <View className="flex-row gap-4 items-center">
-          <Link href={"/create-account"}>
+          <TouchableOpacity onPress={() => router.back()}>
             <ChevronLeft size={24} color={"#FFFFFF"} />
-          </Link>
+          </TouchableOpacity>
           <Text className="text-white text-2xl font-bold">
             Política de Privacidade
           </Text>
@@ -82,7 +82,7 @@ export default function PrivacyPolicy() {
       {/* FOOTER FIXO */}
       <View className="border-t border-gray-200 p-6 bg-white absolute bottom-0 left-0 right-0">
         <TouchableOpacity
-          onPress={() => router.push("/login")}
+          onPress={() => router.back()}
           className="w-full h-14 rounded-full bg-background items-center justify-center shadow-md"
         >
           <Text className="text-white font-bold text-lg">Aceitar e Continuar</Text>

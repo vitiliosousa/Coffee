@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity } from "react-native";
-import { Link, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { LucideIcon, ChevronRight } from "lucide-react-native";
 import Dots from "./Dots";
 
@@ -36,9 +36,9 @@ export default function OnboardingScreen({
       <View className="flex-row items-center">
         <View className="flex-1" />
         <View className="flex-1 items-end">
-          <Link href={skipRoute} className="text-gray-400">
-            Pular
-          </Link>
+          <TouchableOpacity onPress={() => router.replace(skipRoute)}>
+            <Text className="text-gray-400">Pular</Text>
+          </TouchableOpacity>
         </View>
       </View>
 

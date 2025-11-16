@@ -14,7 +14,7 @@ export function useProfile() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
     loadUserData();
@@ -56,27 +56,26 @@ export function useProfile() {
     }
   };
 
-  const handleDeleteAccount = () => {
+  const handleLogout = () => {
     Alert.alert(
-      "Deletar Conta",
-      "Tem certeza que deseja deletar sua conta? Esta ação não pode ser desfeita.",
+      "Logout",
+      "Tem certeza que deseja sair da sua conta?",
       [
         { text: "Cancelar", style: "cancel" },
-        { text: "Deletar", style: "destructive", onPress: confirmDeleteAccount },
+        { text: "Sair", style: "destructive", onPress: confirmLogout },
       ]
     );
   };
 
-  const confirmDeleteAccount = async () => {
-    setDeleting(true);
+  const confirmLogout = async () => {
+    setLoggingOut(true);
     try {
-      // await authService.deleteAccount();
-      Alert.alert("Conta deletada", "Sua conta foi deletada com sucesso");
+      await authService.logout();
       router.replace("/login");
     } catch (error: any) {
-      Alert.alert("Erro", error.message || "Não foi possível deletar a conta");
+      Alert.alert("Erro", error.message || "Não foi possível fazer logout");
     } finally {
-      setDeleting(false);
+      setLoggingOut(false);
     }
   };
 
@@ -85,8 +84,8 @@ export function useProfile() {
     setFormData,
     loading,
     saving,
-    deleting,
+    loggingOut,
     handleSaveChanges,
-    handleDeleteAccount,
+    handleLogout,
   };
 }

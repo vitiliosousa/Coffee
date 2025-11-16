@@ -5,12 +5,13 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { useRouter, Link } from "expo-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import AuthHeader from "@/components/AuthHeader";
 import PasswordInput from "@/components/PasswordInput";
 import LoadingButton from "@/components/LoadingButton";
 import { useAuth } from "@/hooks/useAuth";
+import { authService } from "@/services/auth.service";
 
 export default function Login() {
   const router = useRouter();
@@ -19,6 +20,17 @@ export default function Login() {
     email: "",
     password: "",
   });
+
+  // Redirecionar para home se já estiver logado
+  useEffect(() => {
+    const checkIfLoggedIn = async () => {
+      const isAuthenticated = await authService.isAuthenticated();
+      if (isAuthenticated) {
+        router.replace("/home");
+      }
+    };
+    checkIfLoggedIn();
+  }, [router]);
 
   return (
     <KeyboardAwareScrollView
@@ -93,7 +105,7 @@ export default function Login() {
           </View>
 
           <TouchableOpacity
-            onPress={() => router.push("/create-account")}
+            onPress={() => router.replace("/create-account")}
             className="mt-6 flex items-center"
           >
             <Text className="text-black font-semibold">

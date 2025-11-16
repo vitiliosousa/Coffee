@@ -21,8 +21,10 @@ import {
 } from "lucide-react-native";
 import { adminService, UserOrder } from "@/services/admin.service";
 import { authService } from "@/services/auth.service";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 export default function MyOrders() {
+  const { isChecking, isAuthenticated } = useAuthGuard();
   const router = useRouter();
   const [orders, setOrders] = useState<UserOrder[]>([]);
   const [loading, setLoading] = useState(true);
@@ -320,7 +322,7 @@ export default function MyOrders() {
     );
   };
 
-  if (loading) {
+  if (isChecking || loading) {
     return (
       <View className="flex-1 bg-white">
         {/* Header */}
@@ -332,13 +334,17 @@ export default function MyOrders() {
             <Text className="text-white text-2xl font-bold">Meus Pedidos</Text>
           </View>
         </View>
-        
+
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#503B36" />
           <Text className="text-lg mt-4 text-gray-600">Carregando pedidos...</Text>
         </View>
       </View>
     );
+  }
+
+  if (!isAuthenticated) {
+    return null;
   }
 
   return (
