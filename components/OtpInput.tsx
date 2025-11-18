@@ -36,7 +36,7 @@ export default function OtpInput({
     }
   };
 
-  const handleKeyPress = (e: NativeSyntheticEvent<NativeTouchEvent>, index: number) => {
+  const handleKeyPress = (e: any, index: number) => {
     // Voltar para o input anterior ao pressionar backspace
     if (e.nativeEvent.key === "Backspace" && !value[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();

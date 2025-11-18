@@ -235,11 +235,13 @@ export default function Payment() {
       const response = await orderService.createOrder(createOrderRequest) as {
         success?: boolean;
         status?: string;
-        data?: { 
-          id: string; 
-          status: string; 
-          created_at: string;
-          total_amount?: number;
+        data?: {
+          order: {
+            id: string;
+            status: string;
+            created_at: string;
+            total_amount?: number;
+          }
         };
         message?: string;
       };
@@ -248,12 +250,12 @@ export default function Payment() {
       console.log(JSON.stringify(response, null, 2));
 
       const isSuccess = response.success === true || response.status === "success";
-      
-      if (isSuccess && response.data) {
-        console.log("Pedido criado com sucesso:", response.data.id);
-        
+
+      if (isSuccess && response.data?.order) {
+        console.log("Pedido criado com sucesso:", response.data.order.id);
+
         // Obter o total do pedido da resposta da API
-        const orderTotal = response.data.total_amount || orderData.total;
+        const orderTotal = response.data.order.total_amount || orderData.total;
         
         // 🔥 LIMPAR CARRINHO DO ASYNCSTORAGE
         await AsyncStorage.removeItem('cartItems');
@@ -263,14 +265,14 @@ export default function Payment() {
         router.replace({
           pathname: "/order-confirmation",
           params: {
-            orderId: response.data.id,
+            orderId: response.data.order.id,
             orderType: orderData.orderType,
             deliveryAddress: orderData.deliveryAddress,
             total: orderTotal.toFixed(2),
             itemCount: orderData.items.length.toString(),
             paymentMethod: "Saldo",
-            status: response.data.status,
-            createdAt: response.data.created_at
+            status: response.data.order.status,
+            createdAt: response.data.order.created_at
           }
         });
       } else {

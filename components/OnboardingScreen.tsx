@@ -36,7 +36,7 @@ export default function OnboardingScreen({
       <View className="flex-row items-center">
         <View className="flex-1" />
         <View className="flex-1 items-end">
-          <TouchableOpacity onPress={() => router.replace(skipRoute)}>
+          <TouchableOpacity onPress={() => router.replace(skipRoute as any)}>
             <Text className="text-gray-400">Pular</Text>
           </TouchableOpacity>
         </View>
@@ -61,7 +61,7 @@ export default function OnboardingScreen({
       {/* Navigation Button */}
       <View className="flex-row justify-end">
         <TouchableOpacity
-          onPress={() => router.replace(nextRoute)}
+          onPress={() => router.replace(nextRoute as any)}
           className={`w-14 h-14 rounded-full items-center justify-center ${buttonBgColor}`}
         >
           <ChevronRight size={28} color="white" />

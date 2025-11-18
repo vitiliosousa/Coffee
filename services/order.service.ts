@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-const API_BASE_URL = "https://eticketsmz.site/brewhouse/api/v1";
+import { ordersStore } from "../mocks/ordersData";
+import { authService } from "./auth.service";
 
 export enum OrderType {
   DRIVE_THRU = "drive_thru",
@@ -93,38 +93,8 @@ export interface TransactionRequest {
 }
 
 class OrderService {
-  private async makeAuthenticatedRequest<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<T> {
-    const token = await AsyncStorage.getItem("@auth_token");
-    if (!token) throw new Error("Token não encontrado");
-
-    const headers = {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-      ...(options.headers || {}),
-    };
-
-    const url = `${API_BASE_URL}${endpoint}`;
-    console.log(`=== REQUEST: ${options.method || "GET"} ${url} ===`);
-    if (options.body) console.log("Body:", options.body);
-
-    const response = await fetch(url, {
-      ...options,
-      headers,
-    });
-
-    console.log(`=== RESPONSE: ${response.status} ${response.statusText} ===`);
-    const data = await response.json();
-    console.log("Response data:", JSON.stringify(data, null, 2));
-
-    if (!response.ok) {
-      const message = data.message || "Erro ao processar requisição";
-      throw new Error(message);
-    }
-
-    return data;
+  private async delay(ms: number = 500): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   // 🔹 Realizar transação do pedido via QR code (usando payment code)
@@ -132,65 +102,123 @@ class OrderService {
     paymentCode: string,
     orderId: string
   ): Promise<TransactionResponse> {
-    try {
-      console.log("=== ORDER SERVICE: Iniciando transação ===");
-      console.log("Payment Code:", paymentCode);
-      console.log("Order ID:", orderId);
+    await this.delay(1000);
 
-      const payload = { order_id: orderId };
-      console.log("Payload:", JSON.stringify(payload, null, 2));
+    const order = ordersStore.find(o => o.id === orderId);
 
-      const response = await this.makeAuthenticatedRequest<TransactionResponse>(
-        `/users/orders/perform-transaction/${paymentCode}`,
-        {
-          method: "POST",
-          body: JSON.stringify(payload),
-        }
-      );
-
-      console.log("=== ORDER SERVICE: Transação concluída ===");
-      console.log("Resposta:", JSON.stringify(response, null, 2));
-
-      return response;
-    } catch (error: any) {
-      console.error("=== ORDER SERVICE: Erro na transação ===");
-      console.error("Erro completo:", error);
-      throw error;
+    if (!order) {
+      throw new Error("Pedido não encontrado");
     }
+
+    if (order.state === "paid" || order.state === "closed") {
+      throw new Error("Este pedido já foi pago");
+    }
+
+    const currentUser = await authService.getUser();
+    if (!currentUser) {
+      throw new Error("Usuário não autenticado");
+    }
+
+    if (currentUser.wallet_balance < order.total_amount) {
+      throw new Error("Saldo insuficiente na carteira");
+    }
+
+    currentUser.wallet_balance -= order.total_amount;
+    currentUser.loyalty_points += Math.floor(order.total_amount / 10);
+    await authService.saveUser(currentUser);
+
+    order.state = "paid" as any;
+    order.status = "preparing" as any;
+    order.updated_at = new Date().toISOString();
+
+    const transaction: Transaction = {
+      id: `trans-${Date.now()}`,
+      amount: order.total_amount,
+      type: "payment",
+      description: `Pagamento - Pedido #${orderId}`,
+      created_at: new Date().toISOString(),
+      current_balance: currentUser.wallet_balance,
+    };
+
+    return {
+      status: "success",
+      message: "Transação realizada com sucesso",
+      data: {
+        order: order as any,
+        transaction,
+      },
+    };
   }
 
   // 🔹 Criar pedido
   async createOrder(orderData: any) {
-    const cleanedData = {
+    await this.delay(800);
+
+    const currentUser = await authService.getUser();
+    if (!currentUser) {
+      throw new Error("Usuário não autenticado");
+    }
+
+    const totalAmount = orderData.items.reduce(
+      (sum: number, item: any) => sum + item.total_price,
+      0
+    );
+
+    const orderId = `order-${Date.now()}`;
+
+    const newOrder: Order = {
+      id: orderId,
+      user_id: currentUser.id,
+      table_id: orderData.table_id,
       type: orderData.type,
+      status: OrderStatus.PENDING,
+      state: OrderState.ONGOING,
+      total_amount: totalAmount,
+      delivery_address: orderData.delivery_address,
+      scheduled_time: orderData.scheduled_time,
       payment_method: orderData.payment_method,
       terminal: orderData.terminal,
-      ...(orderData.table_id && { table_id: orderData.table_id }),
-      ...(orderData.delivery_address && { delivery_address: orderData.delivery_address }),
-      ...(orderData.scheduled_time && { scheduled_time: orderData.scheduled_time }),
-      items: orderData.items.map((item: any) => ({
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      order_items: orderData.items.map((item: any, index: number) => ({
+        id: `item-${Date.now()}-${index}`,
+        order_id: orderId,
         product_id: item.product_id,
+        variant_id: item.variant_id,
         quantity: item.quantity,
         unit_price: item.unit_price,
         total_price: item.total_price,
-        ...(item.variant_id && { variant_id: item.variant_id }),
       })),
     };
 
-    console.log("=== Criando pedido ===");
-    console.log(JSON.stringify(cleanedData, null, 2));
+    ordersStore.unshift(newOrder as any);
 
-    return this.makeAuthenticatedRequest("/users/orders", {
-      method: "POST",
-      body: JSON.stringify(cleanedData),
-    });
+    return {
+      status: "success",
+      message: "Pedido criado com sucesso",
+      data: {
+        order: newOrder,
+      },
+    };
   }
 
   // 🔹 Buscar pedido por ID
   async getOrderById(orderId: string) {
-    return this.makeAuthenticatedRequest(`/users/orders/${orderId}`, {
-      method: "GET",
-    });
+    await this.delay();
+
+    const order = ordersStore.find(o => o.id === orderId);
+
+    if (!order) {
+      throw new Error("Pedido não encontrado");
+    }
+
+    return {
+      status: "success",
+      message: "Pedido obtido com sucesso",
+      data: {
+        order,
+      },
+    };
   }
 }
 

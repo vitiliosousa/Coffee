@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-const API_BASE_URL = "https://eticketsmz.site/brewhouse/api/v1";
+import { reservationsStore, mockAvailabilitySlots } from "../mocks/reservationsData";
+import { authService } from "./auth.service";
 
 export interface Reservation {
   id: string;
@@ -42,27 +42,8 @@ export interface AvailabilityResponse {
 }
 
 class ReservationService {
-  private async makeAuthenticatedRequest<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<T> {
-    const token = await AsyncStorage.getItem("@auth_token");
-    if (!token) throw new Error("Token não encontrado");
-
-    const headers = {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-      ...(options.headers || {}),
-    };
-
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...options,
-      headers,
-    });
-
-    const data = await response.json();
-    if (!response.ok) throw data;
-    return data;
+  private async delay(ms: number = 500): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   // 1️⃣ Criar reserva
@@ -72,48 +53,104 @@ class ReservationService {
     guests_count: number;
     special_requests?: string;
   }): Promise<ReservationResponse> {
-    return this.makeAuthenticatedRequest<ReservationResponse>(
-      "/users/reservations",
-      {
-        method: "POST",
-        body: JSON.stringify(reservation),
-      }
-    );
+    await this.delay(800);
+
+    const newReservation: Reservation = {
+      id: `res-${Date.now()}`,
+      date: reservation.date,
+      start_time: reservation.start_time,
+      guests_count: reservation.guests_count,
+      special_requests: reservation.special_requests || "",
+      status: "confirmed",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      check_in: false,
+    };
+
+    reservationsStore.unshift(newReservation);
+
+    return {
+      status: "success",
+      message: "Reserva criada com sucesso",
+      data: {
+        reservation: newReservation,
+      },
+    };
   }
 
   // 2️⃣ Listar horários disponíveis
   async listAvailability(date: string): Promise<AvailabilityResponse> {
-    return this.makeAuthenticatedRequest<AvailabilityResponse>(
-      `/users/availability?date=${date}`,
-      { method: "GET" }
-    );
+    await this.delay();
+
+    return {
+      status: "success",
+      message: "Horários disponíveis obtidos com sucesso",
+      data: mockAvailabilitySlots,
+    };
   }
 
   // 3️⃣ Check-in da reserva
   async checkIn(reservationId: string): Promise<ReservationResponse> {
-    return this.makeAuthenticatedRequest<ReservationResponse>(
-      `/users/reservations/${reservationId}/check-in`,
-      { method: "PUT" }
-    );
+    await this.delay();
+
+    const reservation = reservationsStore.find(r => r.id === reservationId);
+
+    if (!reservation) {
+      throw {
+        status: "error",
+        message: "Reserva não encontrada",
+      };
+    }
+
+    reservation.check_in = true;
+    reservation.status = "completed";
+    reservation.updated_at = new Date().toISOString();
+
+    return {
+      status: "success",
+      message: "Check-in realizado com sucesso",
+      data: {
+        reservation,
+      },
+    };
   }
 
   // 4️⃣ Listar reservas do usuário
   async listReservations(): Promise<ReservationsResponse> {
-    return this.makeAuthenticatedRequest<ReservationsResponse>(
-      "/users/reservations",
-      { method: "GET" }
-    );
+    await this.delay();
+
+    return {
+      status: "success",
+      message: "Reservas obtidas com sucesso",
+      data: {
+        reservations: reservationsStore,
+      },
+    };
   }
 
   // 5️⃣ Cancelar reserva
   async cancelReservation(reservationId: string): Promise<ReservationResponse> {
-    return this.makeAuthenticatedRequest<ReservationResponse>(
-      `/users/reservations/${reservationId}/status`,
-      {
-        method: "POST",
-        body: JSON.stringify({ status: "canceled" }),
-      }
-    );
+    await this.delay();
+
+    const reservation = reservationsStore.find(r => r.id === reservationId);
+
+    if (!reservation) {
+      throw {
+        status: "error",
+        message: "Reserva não encontrada",
+      };
+    }
+
+    reservation.status = "canceled";
+    reservation.updated_at = new Date().toISOString();
+
+    return {
+      status: "success",
+      message: "Reserva cancelada com sucesso",
+      data: {
+        reservation,
+      },
+    };
   }
 }
 

@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-const API_BASE_URL = "https://eticketsmz.site/brewhouse/api/v1";
+import { mockCategories, mockProducts } from "../mocks/productsData";
+import { mockCampaigns, mockLoyaltyHistory, mockLoyaltyStats, mockPaymentCode } from "../mocks/campaignsData";
+import { mockOrders, ordersStore } from "../mocks/ordersData";
 
 // ==================== INTERFACES ====================
 
@@ -212,117 +213,170 @@ export interface LoyaltyHistoryResponse {
 // ==================== SERVICE CLASS ====================
 
 class AdminService {
-  private async makeAuthenticatedRequest<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<T> {
-    const token = await AsyncStorage.getItem("@auth_token");
-    if (!token) throw new Error("Token não encontrado");
-
-    const headers = {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-      ...(options.headers || {}),
-    };
-
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...options,
-      headers,
-    });
-
-    const data = await response.json();
-    if (!response.ok) throw data;
-    return data;
+  private async delay(ms: number = 500): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   // 📂 Listar categorias
   async listCategories(): Promise<CategoriesResponse> {
-    return this.makeAuthenticatedRequest<CategoriesResponse>(
-      "/admin/categories",
-      { method: "GET" }
-    );
+    await this.delay();
+    return {
+      status: "success",
+      message: "Categorias obtidas com sucesso",
+      data: {
+        categories: mockCategories,
+      },
+    };
   }
 
   // 📂 Listar produtos
   async listProducts(categoryId?: string): Promise<ProductsResponse> {
-    const endpoint = categoryId
-      ? `/admin/products?category_id=${categoryId}`
-      : "/admin/products";
-    return this.makeAuthenticatedRequest<ProductsResponse>(endpoint, {
-      method: "GET",
-    });
+    await this.delay();
+
+    const filteredProducts = categoryId
+      ? mockProducts.filter(p => p.category_id === categoryId)
+      : mockProducts;
+
+    return {
+      status: "success",
+      message: "Produtos obtidos com sucesso",
+      data: {
+        products: filteredProducts,
+        total: filteredProducts.length,
+        current_page: 1,
+        per_page: 50,
+        has_more: false,
+      },
+    };
   }
 
   // 🔎 Obter produto por ID
   async getProductById(productId: string): Promise<ProductResponse> {
-    return this.makeAuthenticatedRequest<ProductResponse>(
-      `/admin/products/${productId}`,
-      { method: "GET" }
-    );
+    await this.delay();
+
+    const product = mockProducts.find(p => p.id === productId);
+
+    if (!product) {
+      throw {
+        status: "error",
+        message: "Produto não encontrado",
+      };
+    }
+
+    return {
+      status: "success",
+      message: "Produto obtido com sucesso",
+      data: {
+        product,
+      },
+    };
   }
 
   // 🔎 Pesquisar produtos
   async searchProducts(query: string, limit = 10): Promise<ProductsResponse> {
-    return this.makeAuthenticatedRequest<ProductsResponse>(
-      "/admin/products/search",
-      {
-        method: "POST",
-        body: JSON.stringify({ query, limit }),
-      }
-    );
+    await this.delay();
+
+    const searchResults = mockProducts.filter(p =>
+      p.name.toLowerCase().includes(query.toLowerCase()) ||
+      (p.description && p.description.toLowerCase().includes(query.toLowerCase()))
+    ).slice(0, limit);
+
+    return {
+      status: "success",
+      message: "Busca realizada com sucesso",
+      data: {
+        products: searchResults,
+        total: searchResults.length,
+        current_page: 1,
+        per_page: limit,
+        has_more: false,
+      },
+    };
   }
 
   // 📂 Listar variações
   async listVariants(productId: string): Promise<VariantsResponse> {
-    return this.makeAuthenticatedRequest<VariantsResponse>(
-      `/admin/products/${productId}/variants`,
-      { method: "GET" }
-    );
+    await this.delay();
+    return {
+      status: "success",
+      message: "Variações obtidas com sucesso",
+      data: {
+        variants: [],
+        total: 0,
+      },
+    };
   }
 
   // 🔎 Obter variação por ID
   async getVariantById(variantId: string): Promise<VariantResponse> {
-    return this.makeAuthenticatedRequest<VariantResponse>(
-      `/admin/variants/${variantId}`,
-      { method: "GET" }
-    );
+    await this.delay();
+    throw {
+      status: "error",
+      message: "Variação não encontrada",
+    };
   }
 
   // 📂 Listar campanhas ativas
   async getActiveCampaigns(): Promise<ActiveCampaignsResponse> {
-    return this.makeAuthenticatedRequest<ActiveCampaignsResponse>(
-      "/admin/campaigns/active",
-      { method: "GET" }
+    await this.delay();
+
+    const now = new Date();
+    const activeCampaigns = mockCampaigns.filter(
+      c => new Date(c.start_date) <= now && new Date(c.end_date) >= now
     );
+
+    return {
+      status: "success",
+      message: "Campanhas ativas obtidas com sucesso",
+      data: {
+        count: activeCampaigns.length,
+        data: activeCampaigns,
+      },
+    };
   }
 
   // 💳 Gerar código de pagamento (5 minutos padrão, sem valor)
   async generatePaymentCode(): Promise<PaymentCodeResponse> {
-    return this.makeAuthenticatedRequest<PaymentCodeResponse>(
-      "/admin/payment-code/generate",
-      {
-        method: "POST",
-        body: JSON.stringify({
-          validity_minutes: 5, // ⏱️ Tempo fixo de 5 minutos
-        }),
-      }
-    );
+    await this.delay();
+
+    return {
+      status: "success",
+      message: "Código de pagamento gerado com sucesso",
+      data: {
+        code: `PAY${Math.floor(100000 + Math.random() * 900000)}`,
+        expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+        valid_for: "5 minutos",
+      },
+    };
   }
 
   // 📦 Listar pedidos do usuário (live)
   async getUserLiveOrders(): Promise<UserOrdersResponse> {
-    return this.makeAuthenticatedRequest<UserOrdersResponse>(
-      "/admin/orders/user-live",
-      { method: "GET" }
+    await this.delay();
+
+    const liveOrders = ordersStore.filter(
+      o => o.state === "ongoing" || o.state === "paid"
     );
+
+    return {
+      status: "success",
+      message: "Pedidos ativos obtidos com sucesso",
+      data: liveOrders,
+    };
   }
 
   // 🎁 Obter histórico de fidelidade
   async getLoyaltyHistory(): Promise<LoyaltyHistoryResponse> {
-    return this.makeAuthenticatedRequest<LoyaltyHistoryResponse>(
-      "/admin/loyalty/history",
-      { method: "GET" }
-    );
+    await this.delay();
+
+    return {
+      status: "success",
+      message: "Histórico de fidelidade obtido com sucesso",
+      data: {
+        history: mockLoyaltyHistory,
+        stats: mockLoyaltyStats,
+      },
+    };
   }
 }
 

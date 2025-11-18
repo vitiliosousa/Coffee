@@ -1,8 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Platform } from "react-native";
-
-const API_BASE_URL = "https://eticketsmz.site/brewhouse/api/v1";
-const isWeb = Platform.OS === "web";
+import { mockUser, mockAuthToken } from "../mocks/userData";
+import { mockTransactions, transactionsStore } from "../mocks/transactionsData";
 
 export interface RegisterData {
   name: string;
@@ -121,131 +119,82 @@ export interface TransactionFilter {
 }
 
 class AuthService {
-  private async makeRequest<T>(
-    endpoint: string,
-    options: RequestInit
-  ): Promise<T> {
-    try {
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-        ...options.headers,
-      };
-      if (isWeb) {
-        headers["Accept"] = "application/json";
-        headers["X-Requested-With"] = "XMLHttpRequest";
-      }
-
-      const requestOptions: RequestInit = {
-        ...options,
-        headers,
-        mode: isWeb ? "cors" : undefined,
-        credentials: isWeb ? "omit" : undefined,
-      };
-
-      const response = await fetch(
-        `${API_BASE_URL}${endpoint}`,
-        requestOptions
-      );
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw {
-          status: "error",
-          message: data.message || "Erro na requisição",
-          errors: data.errors,
-        } as ApiError;
-      }
-      return data;
-    } catch (error) {
-      // Apenas logar erros de conexão, não erros de API (como Unauthorized)
-      if (error instanceof TypeError) {
-        console.error("Erro de conexão:", error);
-        throw {
-          status: "error",
-          message: isWeb
-            ? "Erro de CORS ou conexão. Tente no dispositivo móvel ou configure um proxy."
-            : "Erro de conexão. Verifique sua internet.",
-        } as ApiError;
-      }
-      throw error;
-    }
-  }
-
-  private async makeAuthenticatedRequest<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<T> {
-    const token = await this.getToken();
-    if (!token) {
-      throw {
-        status: "error",
-        message: "Token de autenticação não encontrado. Faça login novamente.",
-      } as ApiError;
-    }
-
-    const authenticatedOptions: RequestInit = {
-      ...options,
-      headers: { ...options.headers, Authorization: `Bearer ${token}` },
-    };
-
-    return this.makeRequest<T>(endpoint, authenticatedOptions);
+  // Simula delay de rede para parecer mais realista
+  private async delay(ms: number = 500): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   async register(userData: RegisterData): Promise<AuthResponse> {
-    const registerPayload = {
+    await this.delay();
+
+    const newUser: User = {
+      ...mockUser,
       name: userData.name,
       phone: userData.phone,
       email: userData.email,
       birthday: userData.birthday || new Date().toISOString(),
-      password: userData.password,
     };
 
-    const response = await this.makeRequest<AuthResponse>("/auth/register", {
-      method: "POST",
-      body: JSON.stringify(registerPayload),
-    });
+    const response: AuthResponse = {
+      status: "success",
+      message: "Usuário registrado com sucesso",
+      data: {
+        token: mockAuthToken,
+        user: newUser,
+      },
+    };
 
-    if (response.data?.token) {
-      await this.saveToken(response.data.token);
-      await this.saveUser(response.data.user);
-    }
+    await this.saveToken(response.data.token);
+    await this.saveUser(response.data.user);
+
     return response;
   }
 
   async login(loginData: LoginData): Promise<AuthResponse> {
-    const response = await this.makeRequest<AuthResponse>("/auth/login", {
-      method: "POST",
-      body: JSON.stringify(loginData),
-    });
+    await this.delay();
 
-    if (response.data?.token) {
-      await this.saveToken(response.data.token);
-      await this.saveUser(response.data.user);
-    }
+    const response: AuthResponse = {
+      status: "success",
+      message: "Login realizado com sucesso",
+      data: {
+        token: mockAuthToken,
+        user: mockUser,
+      },
+    };
+
+    await this.saveToken(response.data.token);
+    await this.saveUser(response.data.user);
+
     return response;
   }
 
   async getAccountInfo(): Promise<AccountInfoResponse> {
-    const response = await this.makeAuthenticatedRequest<AccountInfoResponse>(
-      "/users/account-info",
-      { method: "GET" }
-    );
-    if (response.data?.account) {
-      const updatedUser: User = {
-        id: response.data.account.id,
-        name: response.data.account.name,
-        phone: response.data.account.phone,
-        email: response.data.account.email,
-        birthday: "",
-        role: response.data.account.role,
-        wallet_balance: response.data.account.wallet_balance,
-        loyalty_points: response.data.account.loyalty_points,
-        status: response.data.account.status,
-        created_at: response.data.account.created_at,
-        updated_at: response.data.account.updated_at,
-      };
-      await this.saveUser(updatedUser);
-    }
+    await this.delay();
+
+    const storedUser = await this.getUser();
+    const currentUser = storedUser || mockUser;
+
+    const response: AccountInfoResponse = {
+      status: "success",
+      message: "Informações da conta obtidas com sucesso",
+      data: {
+        account: {
+          id: currentUser.id,
+          name: currentUser.name,
+          phone: currentUser.phone,
+          email: currentUser.email,
+          role: currentUser.role,
+          wallet_balance: currentUser.wallet_balance,
+          loyalty_points: currentUser.loyalty_points,
+          status: currentUser.status,
+          created_at: currentUser.created_at,
+          updated_at: currentUser.updated_at,
+        },
+        messages: ["Bem-vindo de volta!", "Aproveite nossas promoções!"],
+      },
+    };
+
+    await this.saveUser(currentUser);
     return response;
   }
 
@@ -256,61 +205,148 @@ class AuthService {
     description?: string;
     method?: "mpesa" | "card";
   }): Promise<WalletTopUpResponse> {
-    const body = {
+    await this.delay(1000);
+
+    const currentUser = await this.getUser();
+    if (currentUser) {
+      currentUser.wallet_balance += data.amount;
+      await this.saveUser(currentUser);
+    }
+
+    const newTransaction: Transaction = {
+      id: `trans-${Date.now()}`,
       user_id: data.user_id,
-      type: "topup",
-      method: data.method || "mpesa",
-      amount: data.amount,
       phone: data.phone,
-      description: data.description,
+      type: "topup",
+      amount: data.amount.toString(),
+      status: "completed",
+      description: data.description || `Recarga via ${data.method === "card" ? "Cartão" : "M-Pesa"}`,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      user: {
+        id: currentUser?.id || data.user_id,
+        name: currentUser?.name || "Usuário",
+        email: currentUser?.email || "",
+        phone: data.phone,
+      },
     };
-    return this.makeAuthenticatedRequest<WalletTopUpResponse>(
-      "/users/wallet/top-up",
-      { method: "POST", body: JSON.stringify(body) }
-    );
+
+    transactionsStore.unshift(newTransaction);
+
+    return {
+      status: "success",
+      message: "Recarga realizada com sucesso",
+      data: {
+        transaction_id: newTransaction.id,
+        amount: data.amount,
+        method: data.method || "mpesa",
+        type: "topup",
+        status: "completed",
+        created_at: newTransaction.created_at,
+      },
+    };
   }
 
   // Listar todas as transações
   async getWalletTransactions(): Promise<WalletTransactionsResponse> {
-    return this.makeAuthenticatedRequest<WalletTransactionsResponse>(
-      "/users/wallet/transactions",
-      { method: "GET" }
-    );
+    await this.delay();
+
+    return {
+      status: "success",
+      message: "Transações obtidas com sucesso",
+      data: {
+        items: transactionsStore,
+        pagination: {
+          current_page: 1,
+          total_pages: 1,
+          total_items: transactionsStore.length,
+          items_per_page: 50,
+          has_next: false,
+          has_prev: false,
+        },
+      },
+    };
   }
 
   // ✅ Novo: filtrar transações
   async filterWalletTransactions(
     filters: TransactionFilter
   ): Promise<WalletTransactionsResponse> {
-    return this.makeAuthenticatedRequest<WalletTransactionsResponse>(
-      "/users/wallet/transactions/filters",
-      {
-        method: "POST",
-        body: JSON.stringify(filters),
-      }
-    );
+    await this.delay();
+
+    let filteredTransactions = [...transactionsStore];
+
+    if (filters.type) {
+      filteredTransactions = filteredTransactions.filter(t => t.type === filters.type);
+    }
+
+    if (filters.status) {
+      filteredTransactions = filteredTransactions.filter(t => t.status === filters.status);
+    }
+
+    if (filters.date_from) {
+      filteredTransactions = filteredTransactions.filter(
+        t => new Date(t.created_at) >= new Date(filters.date_from!)
+      );
+    }
+
+    if (filters.date_to) {
+      filteredTransactions = filteredTransactions.filter(
+        t => new Date(t.created_at) <= new Date(filters.date_to!)
+      );
+    }
+
+    if (filters.min_amount) {
+      filteredTransactions = filteredTransactions.filter(
+        t => parseFloat(t.amount) >= filters.min_amount!
+      );
+    }
+
+    if (filters.max_amount) {
+      filteredTransactions = filteredTransactions.filter(
+        t => parseFloat(t.amount) <= filters.max_amount!
+      );
+    }
+
+    return {
+      status: "success",
+      message: "Transações filtradas com sucesso",
+      data: {
+        items: filteredTransactions,
+        pagination: {
+          current_page: 1,
+          total_pages: 1,
+          total_items: filteredTransactions.length,
+          items_per_page: 50,
+          has_next: false,
+          has_prev: false,
+        },
+      },
+    };
   }
 
   async requestOTP(): Promise<{ status: string; message: string }> {
-    return this.makeAuthenticatedRequest<{ status: string; message: string }>(
-      "/users/request-otp",
-      { method: "POST" }
-    );
+    await this.delay();
+    return {
+      status: "success",
+      message: "OTP enviado com sucesso para seu email/telefone",
+    };
   }
 
   async verifyOTP(otp: string): Promise<{ status: string; message: string }> {
-    const user = await this.getUser();
-    if (!user) throw { status: "error", message: "Usuário não encontrado." };
+    await this.delay();
 
-    const body = { email: user.email, otp };
+    if (otp === "123456" || otp.length === 6) {
+      return {
+        status: "success",
+        message: "OTP verificado com sucesso",
+      };
+    }
 
-    return this.makeAuthenticatedRequest<{ status: string; message: string }>(
-      "/users/verify-otp",
-      {
-        method: "POST",
-        body: JSON.stringify(body),
-      }
-    );
+    throw {
+      status: "error",
+      message: "OTP inválido",
+    };
   }
 
   async logout(): Promise<void> {
@@ -340,15 +376,8 @@ class AuthService {
   }
 
   async testConnection(): Promise<boolean> {
-    try {
-      const response = await fetch(`${API_BASE_URL}/health`, {
-        method: "GET",
-        mode: isWeb ? "cors" : undefined,
-      });
-      return response.ok;
-    } catch {
-      return false;
-    }
+    await this.delay(200);
+    return true;
   }
 }
 
